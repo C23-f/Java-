@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.FacilityMapper">
+
+    <!-- 矩形框选范围内设施查询 -->
+    <select id="selectFacilityByBounds" resultType="com.example.springboot.entity.Facility">
+        SELECT facility_id, facility_name, category_id, address,
+               longitude, latitude, source, poi_id, status
+        FROM facility
+        WHERE status = 1
+          AND longitude BETWEEN #{minLng} AND #{maxLng}
+          AND latitude BETWEEN #{minLat} AND #{maxLat}
+    </select>
+
+    <!-- 指定点位周边N米范围内设施查询（使用 STBuffer + STIntersects 空间函数） -->
+    <select id="selectFacilityByPointBuffer" resultType="com.example.springboot.entity.Facility">
+        DECLARE @point GEOGRAPHY = geography::Point(#{lat}, #{lng}, 4326);
+        DECLARE @buf GEOGRAPHY = @point.STBuffer(#{radiusM});
+        SELECT facility_id, facility_name, category_id, address,
+               longitude, latitude, source, poi_id, status
+        FROM facility
+        WHERE status = 1
+          AND location.STIntersects(@buf) = 1
+    </select>
+
+</mapper>

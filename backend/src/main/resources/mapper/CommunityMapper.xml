@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.CommunityMapper">
+
+    <!-- 查询全部小区列表 -->
+    <select id="selectAllCommunity" resultType="com.example.springboot.entity.Community">
+        SELECT community_id, community_name, address, region_id,
+               longitude, latitude, house_count, build_year,
+               walk_speed, description
+        FROM community
+    </select>
+
+    <!-- 调用存储过程：15分钟缓冲区分类统计 -->
+    <select id="callStatsProc" resultType="com.example.springboot.entity.CommunityStatsVO" statementType="CALLABLE">
+        {call sp_community_15min_stats(#{communityId,mode=IN}, #{radiusM,mode=IN})}
+    </select>
+
+    <!-- 调用存储过程：可达性评分计算 -->
+    <select id="callCalcScoreProc" resultType="com.example.springboot.entity.AccessibilityScore" statementType="CALLABLE">
+        {call sp_calc_accessibility(#{communityId,mode=IN}, #{radiusM,mode=IN}, #{perCategoryCap,mode=IN})}
+    </select>
+
+</mapper>
