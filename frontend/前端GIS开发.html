@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>城市社区15分钟生活圈便民设施评价与管理系统</title>
+
+    <!-- Leaflet CSS JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- leaflet-draw 实现框选查询工具 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+
+    <style>
+        * {margin:0;padding:0;box-sizing:border-box;}
+        body {font-family:"Microsoft Yahei";}
+        #map {width:100vw;height:100vh;}
+        /* 顶部控制面板 */
+        .top-panel {
+            position:absolute;top:12px;left:50%;transform:translateX(-50%);
+            z-index:999;
+            background:#fff;padding:10px 16px;border-radius:8px;box-shadow:0 2px 8px #0003;
+            display:flex;gap:10px;align-items:center;
+        }
+        input,select,button {padding:6px 8px;font-size:14px;}
+        /* 右侧统计面板 */
+        .stat-panel{
+            position:absolute;top:70px;right:12px;width:280px;
+            z-index:999;background:#fff;padding:14px;border-radius:8px;box-shadow:0 2px 8px #0003;
+        }
+        .stat-panel h4{margin-bottom:8px;color:#222;}
+        .stat-item{margin:4px 0;font-size:14px;}
+    </style>
+</head>
+<body>
+    <!-- 顶部操作栏 -->
+    <div class="top-panel">
+        <input id="searchInput" placeholder="关键词检索设施/小区">
+        <button id="searchBtn">检索</button>
+        <select id="layerSwitch">
+            <option value="all">全部图层显示</option>
+            <option value="community">仅显示小区</option>
+            <option value="facility">仅显示便民设施</option>
+            <option value="none">关闭业务图层</option>
+        </select>
+        <button id="boxQueryBtn">开启框选查询</button>
+        <button id="clearBtn">清除绘制</button>
+    </div>
+
+    <!-- 右侧统计结果面板 -->
+    <div class="stat-panel">
+        <h4>📊15分钟生活圈统计结果</h4>
+        <div class="stat-item">覆盖便民设施数量：<span id="facCount">0</span></div>
+        <div class="stat-item">覆盖小区数量：<span id="comCount">0</span></div>
+        <div class="stat-item">可达性综合评分：<span id="score">--</span></div>
+        <div class="stat-item" style="margin-top:10px;font-size:12px;color:#666">
+            点击小区点位生成15分钟步行缓冲区
+        </div>
+    </div>
+    <div id="map"></div>
+
+    <script>
+        const TDT_TOKEN = "d8b372a31275da6ca44af3310103110a";
+        // 淄博 中心点 纬度,经度
+        const ziboCenter = [36.80, 118.03];
+        const initZoom = 12;
+
+        // 1.初始化地图 + 天地图底图（矢量底图+注记层）
+        const map = L.map('map').setView(ziboCenter, initZoom);
+        // 天地图矢量底图
+        const tdtVec = L.tileLayer(`https://t0.tianditu.gov.cn/DataServer?T=vec_w&x={x}&y={y}&l={z}&tk=${TDT_TOKEN}`,{attribution:"©天地图"}).addTo(map);
+        // 天地图地名注记层
+        const tdtCva = L.tileLayer(`https://t0.tianditu.gov.cn/DataServer?T=cva_w&x={x}&y={y}&l={z}&tk=${TDT_TOKEN}`).addTo(map);
+    </script>
+</body>
+</html>
