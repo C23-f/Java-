@@ -28,4 +28,13 @@ public class Result<T> {
         r.setMessage(message);
         return r;
     }
+
+    //失败返回
+    public static Result fail(String msg){
+    Result r = new Result();
+    r.setCode(500);
+    r.setMessage(msg);
+    return r;
+    }
+
 }

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.springboot.mapper.FacilityCategoryMapper">
+
+    <!-- 查询所有设施分类，按排序号升序 -->
+    <select id="selectAll" resultType="com.example.springboot.entity.FacilityCategory">
+        SELECT 
+            category_id,
+            category_code,
+            category_name,
+            weight,
+            sort_order,
+            description
+        FROM facility_category 
+        ORDER BY sort_order ASC
+    </select>
+
+        <!-- 根据ID查询单个设施分类 -->
+    <select id="selectById" parameterType="int" resultType="com.example.springboot.entity.FacilityCategory">
+        SELECT * FROM facility_category WHERE category_id = #{id}
+    </select>
+
+        <!--新增设施分类-->
+    <insert id="insert" parameterType="com.example.springboot.entity.FacilityCategory">
+        INSERT INTO facility_category(category_code,category_name,weight,sort_order,description)
+        VALUES(#{categoryCode},#{categoryName},#{weight},#{sortOrder},#{description})
+    </insert>
+
+    <!--修改设施分类-->
+    <update id="update" parameterType="com.example.springboot.entity.FacilityCategory">
+        UPDATE facility_category
+        SET category_code=#{categoryCode},
+            category_name=#{categoryName},
+            weight=#{weight},
+            sort_order=#{sortOrder},
+            description=#{description}
+        WHERE category_id=#{categoryId}
+    </update>
+
+    <!--根据id删除-->
+    <delete id="deleteById" parameterType="int">
+        DELETE FROM facility_category WHERE category_id=#{categoryId}
+    </delete>
+
+
+</mapper>
