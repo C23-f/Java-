@@ -3,6 +3,7 @@ package com.example.springboot.service.impl;
 import com.example.springboot.entity.AccessibilityScore;
 import com.example.springboot.entity.Community;
 import com.example.springboot.entity.CommunityStatsVO;
+import com.example.springboot.entity.SpatialCircleVO;
 import com.example.springboot.mapper.CommunityMapper;
 import com.example.springboot.service.CommunitySpatialService;
 import org.springframework.stereotype.Service;
@@ -43,4 +44,9 @@ public class CommunitySpatialServiceImpl implements CommunitySpatialService {
         }
         return resultList;
     }
+    @Override
+    public List<SpatialCircleVO> getCommunityCircleData(Long communityId, Integer bufferMeter) {
+    return communityMapper.getCommunitySpatialCircle(communityId, bufferMeter);
+    }
+
 }

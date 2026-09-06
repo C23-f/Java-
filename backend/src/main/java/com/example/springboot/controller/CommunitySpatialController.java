@@ -47,4 +47,19 @@ public class CommunitySpatialController {
         List<AccessibilityScore> list = communitySpatialService.batchCalcAllCommunity(radius, perCategoryCap);
         return Result.success(list);
     }
+
+    /**
+     * 15分钟生活圈缓冲区设施统计接口
+    * @param communityId 小区id
+    * @param bufferMeter 缓冲区半径，单位米，默认1000
+    * @return 统一返回结果
+    */
+    @GetMapping("/circleStats")
+    public Result<?> getCircleStats(
+        @RequestParam Long communityId,
+        @RequestParam(defaultValue = "1000") Integer bufferMeter
+    ){
+    return Result.success(communitySpatialService.getCommunityCircleData(communityId,bufferMeter));
+    }
+
 }

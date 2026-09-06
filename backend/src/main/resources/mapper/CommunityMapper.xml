@@ -21,4 +21,9 @@
         {call sp_calc_accessibility(#{communityId,mode=IN}, #{radiusM,mode=IN}, #{perCategoryCap,mode=IN})}
     </select>
 
+    <!-- 15分钟生活圈缓冲区空间统计，调用存储过程 -->
+    <select id="getCommunitySpatialCircle" resultType="com.example.springboot.entity.SpatialCircleVO">
+        EXEC sp_community_15min_stats @community_id=#{communityId}, @radius_m=#{bufferMeter}
+    </select>
+
 </mapper>

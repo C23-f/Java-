@@ -3,6 +3,7 @@ package com.example.springboot.mapper;
 import com.example.springboot.entity.AccessibilityScore;
 import com.example.springboot.entity.Community;
 import com.example.springboot.entity.CommunityStatsVO;
+import com.example.springboot.entity.SpatialCircleVO;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
@@ -15,6 +16,12 @@ public interface CommunityMapper {
 
     // 调用存储过程：执行可达性评分计算
     AccessibilityScore callCalcScoreProc(@Param("communityId") Integer communityId,
-                                         @Param("radiusM") Integer radiusM,
-                                         @Param("perCategoryCap") Integer perCategoryCap);
+                                        @Param("radiusM") Integer radiusM,
+                                        @Param("perCategoryCap") Integer perCategoryCap);
+
+    // 15分钟生活圈缓冲区统计，返回VO列表
+    List<SpatialCircleVO> getCommunitySpatialCircle(
+            @Param("communityId") Long communityId,
+            @Param("bufferMeter") Integer bufferMeter
+    );
 }
