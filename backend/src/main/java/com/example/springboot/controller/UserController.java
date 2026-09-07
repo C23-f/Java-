@@ -11,9 +11,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 用户 Controller（登录 / 用户管理）
+ * 用户 Controller（登录 / 注册 / 用户管理）
  *
  * 登录：POST /api/user/login   { "username": "admin", "password": "123456" }
+ * 注册：POST /api/user/register{ "username": "xxx", "password": "xxx", "realName": "xxx", "phone": "xxx" }
  * 退出：POST /api/user/logout
  * 我的信息：GET /api/user/info   （需携带令牌）
  * 用户列表：GET /api/user/list   （仅 admin）
@@ -38,6 +39,13 @@ public class UserController {
             throw new BizException("用户名和密码不能为空");
         }
         return Result.success(userService.login(username.trim(), password));
+    }
+
+    /** 用户注册（无需令牌，拦截器已放行；默认角色为访客） */
+    @PostMapping("/register")
+    public Result<String> register(@RequestBody User user) {
+        userService.register(user);
+        return Result.success("注册成功");
     }
 
     /** 退出登录（JWT 无状态，前端丢弃令牌即可） */
