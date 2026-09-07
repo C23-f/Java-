@@ -1,6 +1,7 @@
 package com.example.springboot.controller;
 
 import com.example.springboot.common.Result;
+import com.example.springboot.entity.CommunityStatsVO;
 import com.example.springboot.entity.Facility;
 import com.example.springboot.service.FacilitySpatialService;
 import org.springframework.web.bind.annotation.*;
@@ -32,4 +33,14 @@ public class FacilitySpatialController {
         List<Facility> list = facilitySpatialService.listFacilityByPointBuffer(lng, lat, radius);
         return Result.success(list);
     }
+
+    @GetMapping("/pointStats")
+    public Result<List<CommunityStatsVO>> getPointStats(
+            @RequestParam Double longitude,
+            @RequestParam Double latitude,
+            @RequestParam(defaultValue = "1000") Integer radius) {
+        List<CommunityStatsVO> stats = facilitySpatialService.getPointBufferStats(longitude, latitude, radius);
+        return Result.success(stats);
+    }
+
 }

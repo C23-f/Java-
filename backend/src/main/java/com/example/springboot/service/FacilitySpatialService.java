@@ -1,5 +1,6 @@
 package com.example.springboot.service;
 
+import com.example.springboot.entity.CommunityStatsVO;
 import com.example.springboot.entity.Facility;
 import java.util.List;
 
@@ -9,4 +10,7 @@ public interface FacilitySpatialService {
 
     // 指定点位周边N米范围内设施查询
     List<Facility> listFacilityByPointBuffer(Double lng, Double lat, Integer radiusM);
+    
+    List<CommunityStatsVO> getPointBufferStats(Double longitude, Double latitude, Integer radius);
+
 }

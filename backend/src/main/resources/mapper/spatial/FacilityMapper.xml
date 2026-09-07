@@ -23,5 +23,21 @@
         WHERE status = 1
           AND location.STIntersects(@buf) = 1
     </select>
+<!-- 指定点位周边N米范围设施分类统计 -->
+<select id="selectPointBufferStats" resultType="com.example.springboot.entity.CommunityStatsVO">
+    DECLARE @point GEOGRAPHY = geography::Point(#{latitude}, #{longitude}, 4326);
+    DECLARE @buf GEOGRAPHY = @point.STBuffer(#{radius});
+
+    SELECT
+        fc.category_code AS categoryCode,
+        fc.category_name AS categoryName,
+        COUNT(f.facility_id) AS facilityCount
+    FROM facility f
+    INNER JOIN facility_category fc ON f.category_id = fc.category_id
+    WHERE f.location.STIntersects(@buf) = 1
+      AND f.status = 1
+    GROUP BY fc.category_code, fc.category_name
+    ORDER BY fc.category_code
+</select>
 
 </mapper>

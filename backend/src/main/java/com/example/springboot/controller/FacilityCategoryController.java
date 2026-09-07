@@ -39,40 +39,40 @@ public class FacilityCategoryController {
     }
         // 根据ID查询单个分类
     @GetMapping("/{id}")
-    public Result getById(@PathVariable Integer id) {
+    public Result<?> getById(@PathVariable Integer id) {
         FacilityCategory category = facilityCategoryService.getById(id);
         return Result.success(category);
     }
     //新增
     @PostMapping
-    public Result add(@RequestBody FacilityCategory category){
+    public Result<?> add(@RequestBody FacilityCategory category){
         int res = facilityCategoryService.add(category);
         if(res>0){
             return Result.success("新增成功");
         }else {
-            return Result.fail("新增失败");
+            return Result.error("新增失败");
         }
     }
 
     //修改
     @PutMapping
-    public Result edit(@RequestBody FacilityCategory category){
+    public Result<?> edit(@RequestBody FacilityCategory category){
         int res = facilityCategoryService.edit(category);
         if(res>0){
             return Result.success("修改成功");
         }else {
-            return Result.fail("修改失败");
+            return Result.error("修改失败");
         }
     }
 
     //删除
     @DeleteMapping("/{id}")
-    public Result remove(@PathVariable Integer id){
+    public Result<?> remove(@PathVariable Integer id){
         int res = facilityCategoryService.remove(id);
         if(res>0){
             return Result.success("删除成功");
         }else {
-            return Result.fail("删除失败");
+            return Result.error("删除失败");
         }
     }
 
