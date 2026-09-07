@@ -250,7 +250,7 @@ GO
 -- 4.2 用户（2个种子账号，密码明文存储，课程项目简单易用）
 INSERT INTO dbo.sys_user (username, password, real_name, phone, role_id, status) VALUES
  (N'admin',    N'123456', N'张老师', N'13800000001', 1, 1),
- (N'operator', N'123456', N'李运营', N'13800000002', 2, 1);
+ (N'operator', N'234567', N'李运营', N'13800000002', 2, 1);
 GO
 
 -- 4.3 行政区划（2行：区县 + 示范片区，演示父子层级，显式主键需开启 IDENTITY_INSERT）
