@@ -2,11 +2,13 @@
               后端 Java 代码目录说明
 ============================================================
 根包：com.example.springboot
-【根目录】
+
+【根目录】（1 个文件）
 ------------------------------------------------------------
 SpringbootSpatialApplication.java
   项目启动类，带 @SpringBootApplication，main 方法从这里启动
   整个后端；同时用 @MapperScan 扫描所有 Mapper 接口
+
 
 【common 包】—— 通用工具 / 基础类
 ------------------------------------------------------------
@@ -47,10 +49,11 @@ JwtInterceptor.java  ★核心
   （无/过期→401）、按角色判断权限（否则→403）
 
 WebConfig.java
-  注册上面的拦截器，并放行登录接口 /api/user/login
+  注册上面的拦截器，并放行登录和注册接口
+  （/api/user/login、/api/user/register 无需 token）
 
 
-【controller 包】—— 接口层（接 HTTP 请求）
+【controller 包】（5 个文件）—— 接口层（接 HTTP 请求）
 ------------------------------------------------------------
 CommunitySpatialController.java
   小区空间分析接口：小区列表、15分钟生活圈统计、可达性评分、
@@ -63,13 +66,16 @@ FacilitySpatialController.java
   设施空间查询接口：矩形框选、点位周边N米（/api/facility/*）
 
 UserController.java
-  用户接口：登录、退出、查自己信息、用户增删改查（/api/user/*）
+  用户接口：登录、注册、退出、查自己信息、用户增删改查
+  （/api/user/*）
+  其中登录(POST /login)和注册(POST /register)是公开接口，
+  其余均需登录；用户增删改查仅 admin 可访问
 
 RoleController.java
-  角色管理接口：角色增删改查（/api/role/*）
+  角色管理接口：角色增删改查（/api/role/*，仅 admin）
 
 
-【entity 包】—— 实体类（数据载体，对应数据库表）
+【entity 包】（9 个文件）—— 实体类（数据载体，对应数据库表）
 ------------------------------------------------------------
 Community.java              小区实体，对应 community 表
 Facility.java               设施实体，对应 facility 表
@@ -79,7 +85,6 @@ CommunityStatsVO.java       小区15分钟生活圈统计的视图对象（返�
 SpatialCircleVO.java        小区缓冲区设施统计的视图对象（返回给前端的结构，非表）
 User.java                   用户实体，对应 sys_user 表，并联表带出角色名/角色编码
 Role.java                   角色实体，对应 sys_role 表
-
 
 
 【mapper 包】—— 数据访问层接口（定义查库方法）
@@ -96,6 +101,7 @@ FacilityMapper.java
 UserMapper.java
   用户数据访问：按用户名/ID查、查全部、增删改
   （SQL 在 resources/mapper/UserMapper.xml）
+  注册和管理员新增用户复用同一个 insert 方法
 
 RoleMapper.java
   角色数据访问：增删改查
@@ -116,11 +122,14 @@ FacilitySpatialService.java   →  FacilitySpatialServiceImpl.java
   设施空间查询业务：矩形框选、点位缓冲区
 
 UserService.java               →  UserServiceImpl.java
-  用户业务：登录校验（密码比对+签发token）、查当前用户、用户增删改查
-  （含密码加密、用户名唯一校验、禁止删自己）
+  用户业务：
+  - 登录校验（密码比对 + 签发 JWT token）
+  - 用户注册（公开接口，校验非空/用户名去重/密码加密，
+    默认角色为"访客"viewer，只读权限）
+  - 查当前用户信息
+  - 用户增删改查（含密码加密、用户名唯一校验、禁止删除自己）
+  注：注册(register)与管理员新增(add)的区别——注册无需登录
+  且固定访客角色，add 需 admin 登录且可指定角色
 
 RoleService.java               →  RoleServiceImpl.java
   角色业务：增删改查
-
-  注：service/ 里是接口定义（规定有哪些方法），
-      service/impl/ 里是具体实现（真正写逻辑的地方）。
