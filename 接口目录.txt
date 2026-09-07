@@ -1,0 +1,126 @@
+============================================================
+              后端 Java 代码目录说明
+============================================================
+根包：com.example.springboot
+【根目录】
+------------------------------------------------------------
+SpringbootSpatialApplication.java
+  项目启动类，带 @SpringBootApplication，main 方法从这里启动
+  整个后端；同时用 @MapperScan 扫描所有 Mapper 接口
+
+【common 包】—— 通用工具 / 基础类
+------------------------------------------------------------
+Result.java
+  统一返回结果类，所有接口都返回 {code, message, data} 结构
+
+BizException.java
+  自定义业务异常，代码里想主动报错时 throw new BizException("xxx")
+
+GlobalExceptionHandler.java
+  全局异常处理器，所有 Controller 抛出的异常都在这里统一拦截
+  并包装成 Result 返回
+
+JwtUtil.java
+  JWT 令牌工具，登录成功后签发 token（24小时有效），后续请求
+  用它校验身份
+
+PasswordUtil.java
+  密码加密工具，用 SHA-256（和数据库种子账号同一套格式）加密/
+  校验密码，不存明文
+
+UserContext.java
+  当前登录用户上下文（ThreadLocal），拦截器校验通过后把用户信息
+  放这里，Controller/Service 随时可取
+
+
+【config 包】—— 配置类
+------------------------------------------------------------
+CorsConfig.java
+  跨域配置，允许前端（不同端口/域名）调用后端接口
+
+JacksonConfig.java
+  JSON 响应编码配置，强制所有 JSON 响应头带 charset=UTF-8，
+  解决中文乱码
+
+JwtInterceptor.java  ★核心
+  登录+权限校验拦截器，所有 /api/** 请求先过这里：校验 token
+  （无/过期→401）、按角色判断权限（否则→403）
+
+WebConfig.java
+  注册上面的拦截器，并放行登录接口 /api/user/login
+
+
+【controller 包】—— 接口层（接 HTTP 请求）
+------------------------------------------------------------
+CommunitySpatialController.java
+  小区空间分析接口：小区列表、15分钟生活圈统计、可达性评分、
+  缓冲区统计（/api/community/*）
+
+FacilityCategoryController.java
+  设施分类增删改查接口（/api/category/*）
+
+FacilitySpatialController.java
+  设施空间查询接口：矩形框选、点位周边N米（/api/facility/*）
+
+UserController.java
+  用户接口：登录、退出、查自己信息、用户增删改查（/api/user/*）
+
+RoleController.java
+  角色管理接口：角色增删改查（/api/role/*）
+
+
+【entity 包】—— 实体类（数据载体，对应数据库表）
+------------------------------------------------------------
+Community.java              小区实体，对应 community 表
+Facility.java               设施实体，对应 facility 表
+FacilityCategory.java       设施分类实体，对应 facility_category 表
+AccessibilityScore.java     可达性评分结果实体，对应 accessibility_score 表
+CommunityStatsVO.java       小区15分钟生活圈统计的视图对象（返回给前端的结构，非表）
+SpatialCircleVO.java        小区缓冲区设施统计的视图对象（返回给前端的结构，非表）
+User.java                   用户实体，对应 sys_user 表，并联表带出角色名/角色编码
+Role.java                   角色实体，对应 sys_role 表
+
+
+
+【mapper 包】—— 数据访问层接口（定义查库方法）
+------------------------------------------------------------
+CommunityMapper.java
+  小区数据访问：查全部小区、调统计/评分存储过程、查缓冲区数据
+
+FacilityCategoryMapper.java
+  设施分类数据访问：增删改查
+
+FacilityMapper.java
+  设施数据访问：矩形框选查询、点位缓冲区查询
+
+UserMapper.java
+  用户数据访问：按用户名/ID查、查全部、增删改
+  （SQL 在 resources/mapper/UserMapper.xml）
+
+RoleMapper.java
+  角色数据访问：增删改查
+  （SQL 在 resources/mapper/RoleMapper.xml）
+
+
+【service 包】+【service/impl 包】（5 个实现）
+                          —— 业务逻辑层
+------------------------------------------------------------
+接口文件                          实现文件
+CommunitySpatialService.java  →  CommunitySpatialServiceImpl.java
+  小区空间分析业务：列表、15分钟统计、单小区/批量可达性评分、缓冲区统计
+
+FacilityCategoryService.java  →  FacilityCategoryServiceImpl.java
+  设施分类业务：增删改查
+
+FacilitySpatialService.java   →  FacilitySpatialServiceImpl.java
+  设施空间查询业务：矩形框选、点位缓冲区
+
+UserService.java               →  UserServiceImpl.java
+  用户业务：登录校验（密码比对+签发token）、查当前用户、用户增删改查
+  （含密码加密、用户名唯一校验、禁止删自己）
+
+RoleService.java               →  RoleServiceImpl.java
+  角色业务：增删改查
+
+  注：service/ 里是接口定义（规定有哪些方法），
+      service/impl/ 里是具体实现（真正写逻辑的地方）。
