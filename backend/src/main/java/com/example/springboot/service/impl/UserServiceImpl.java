@@ -14,9 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 用户业务实现
- */
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -42,6 +39,30 @@ public class UserServiceImpl implements UserService {
         data.put("token", token);
         data.put("user", user);
         return data;
+    }
+
+    @Override
+    public void register(User user) {
+        // 1. 校验参数
+        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+            throw new BizException("用户名不能为空");
+        }
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            throw new BizException("密码不能为空");
+        }
+        String username = user.getUsername().trim();
+        // 2. 检查用户名是否已存在
+        if (userMapper.findByUsername(username) != null) {
+            throw new BizException("用户名已存在");
+        }
+        // 3. 组装数据
+        user.setUsername(username);
+        user.setPassword(PasswordUtil.encrypt(user.getPassword()));
+        // 注册用户默认角色：访客(role_id=3)，只读权限；管理员可后续升级
+        user.setRoleId(3);
+        user.setStatus(1);
+        // 4. 插入数据库（复用已有的 insert）
+        userMapper.insert(user);
     }
 
     @Override
