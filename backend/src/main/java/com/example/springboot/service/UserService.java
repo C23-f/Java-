@@ -13,6 +13,9 @@ public interface UserService {
     /** 登录：校验账号密码，返回 token + 用户信息 */
     Map<String, Object> login(String username, String password);
 
+    /** 用户注册（无需登录，默认角色为访客） */
+    void register(User user);
+
     /** 获取当前登录用户完整信息（从数据库查） */
     User getCurrentUser();
 
