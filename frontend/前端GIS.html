@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>淄博市社区15分钟生活圈便民设施评价与管理系统</title>
+    <!-- Leaflet 核心库 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- leaflet‑draw 用于框选查询 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <style>
+        * {margin:0;padding:0;box-sizing:border-box;}
+        body {font-family:"Microsoft Yahei",sans-serif;overflow:hidden;}
+
+        /* 顶部橙色导航栏，模仿截图样式 */
+        .header-bar {
+            width:100%;
+            height:52px;
+            background-color:#e66020;
+            display:flex;
+            align-items:center;
+            padding:0 16px;
+            color:#ffffff;
+            position:relative;
+            z-index:1000;
+        }
+        .sys-title {
+            font-size:17px;
+            font-weight:bold;
+            white-space:nowrap;
+        }
+        .header-tools {
+            display:flex;
+            gap:10px;
+            margin-left:30px;
+            align-items:center;
+        }
+        .header-tools input,.header-tools select,.header-tools button{
+            padding:5px 10px;
+            font-size:13px;
+            border:none;
+            border-radius:4px;
+        }
+        .header-tools button{
+            background:#ffffff;
+            color:#d45018;
+            cursor:pointer;
+        }
+
+        /* 地图占满除去顶部导航的全部页面 */
+        #map {
+            width:100vw;
+            height:calc(100vh - 52px);
+        }
+
+        /* 左侧悬浮面板：悬浮在地图上方，不挤压布局 */
+        .left-panel{
+            position:absolute;
+            bottom:64px;
+            left:12px;
+            width:220px;
+            background:#ffffff;
+            box-shadow:0 2px 12px rgba(0,0,0,0.18);
+            padding:12px;
+            border-radius:6px;
+            z-index:998;
+        }
+        .left-panel h4{
+            margin-bottom:10px;
+            color:#333;
+        }
+        .layer-item{
+            margin:6px 0;
+            font-size:14px;
+        }
+
+        /* 右侧悬浮面板 */
+        .right-panel{
+            position:absolute;
+            top:64px;
+            right:12px;
+            width:260px;
+            background:#fff;
+            box-shadow:0 2px 12px rgba(0,0,0,0.18);
+            padding:14px;
+            border-radius:6px;
+            z-index:998;
+        }
+        .right-panel h4{
+            margin-bottom:10px;
+            color:#222;
+        }
+        .stat-item{
+            margin:6px 0;font-size:14px;
+        }
+        .tip-text{
+            margin-top:14px;font-size:12px;color:#666;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部橙色通栏 -->
+<div class="header-bar">
+    <div class="sys-title">淄博市社区 15 分钟生活圈便民设施评价与管理系统</div>
+    <div class="header-tools">
+        <input id="searchInput" placeholder="搜索地名/设施/小区">
+        <button id="searchBtn">检索</button>
+        <select id="layerSwitch">
+            <option value="all">全部图层显示</option>
+            <option value="community">仅显示小区</option>
+            <option value="facility">仅显示便民设施</option>
+            <option value="none">关闭业务图层</option>
+        </select>
+        <button id="boxQueryBtn">开启框选查询</button>
+        <button id="clearBtn">清除绘制</button>
+    </div>
+</div>
+
+<div class="main-container">
+    <!-- 左侧筛选面板 -->
+    <div class="left-panel">
+        <h4>图层控制</h4>
+        <div class="layer-item">
+            <label><input type="checkbox" checked id="ckCommunity"> 小区点位</label>
+        </div>
+        <div class="layer-item">
+            <label><input type="checkbox" checked id="ckFacility"> 便民设施POI</label>
+        </div>
+        <div class="layer-item">
+            <label><input type="checkbox" checked id="ckBuffer">15分钟生活圈缓冲区</label>
+        </div>
+    </div>
+
+    <!-- 地图区域 -->
+    <div id="map"></div>
+
+    <!-- 右侧统计面板 -->
+    <div class="right-panel">
+        <h4>📊15分钟生活圈统计结果</h4>
+        <div class="stat-item">覆盖便民设施数量：<span id="facCount">0</span></div>
+        <div class="stat-item">覆盖小区数量：<span id="comCount">0</span></div>
+        <div class="stat-item">可达性综合评分：<span id="score">--</span></div>
+        <div class="tip-text">点击小区点位生成15分钟步行缓冲区(1200米)</div>
+    </div>
+</div>
+
+<script>
+// =========配置区=========
+// 淄博中心点 [纬度,经度]
+const ziboCenter = [36.80, 118.03];
+const initZoom = 12;
+
+// 模拟Java后端返回GeoJSON：小区数据
+const mockCommunityGeoJson = {
+    "type":"FeatureCollection",
+    "features":[
+        {
+            "type":"Feature",
+            "properties":{"name":"祥瑞园小区","population":3200,"score":82},
+            "geometry":{"type":"Point","coordinates":[118.02,36.81]}
+        },
+        {
+            "type":"Feature",
+            "properties":{"name":"金石晶城小区","population":2600,"score":75},
+            "geometry":{"type":"Point","coordinates":[118.06,36.78]}
+        },
+        {
+            "type":"Feature",
+            "properties":{"name":"恒生国际小区","population":4100,"score":88},
+            "geometry":{"type":"Point","coordinates":[117.98,36.83]}
+        }
+    ]
+};
+// 模拟Java后端返回GeoJSON：便民设施POI
+const mockFacilityGeoJson = {
+    "type":"FeatureCollection",
+    "features":[
+        {
+            "type":"Feature",
+            "properties":{"name":"便民菜市场","type":"商业便民","address":"张店区XX路"},
+            "geometry":{"type":"Point","coordinates":[118.03,36.815]}
+        },
+        {
+            "type":"Feature",
+            "properties":{"name":"社区卫生服务站","type":"医疗","address":"张店区YY大街"},
+            "geometry":{"type":"Point","coordinates":[118.05,36.79]}
+        },
+        {
+            "type":"Feature",
+            "properties":{"name":"城市书房","type":"文化","address":"张店区ZZ路"},
+            "geometry":{"type":"Point","coordinates":[117.99,36.82]}
+        }
+    ]
+};
+
+
+
+        // =========1.初始化地图，加载高德瓦片底图=========
+        const map = L.map('map').setView(ziboCenter, initZoom);
+        // 高德标准瓦片底图（Web墨卡托，z/x/y）
+        L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',{
+            subdomains:["1","2","3","4"],
+            attribution:"©高德地图"
+        }).addTo(map);
+
+// =========2.分层渲染小区图层、便民设施POI图层=========
+let communityLayer = L.geoJSON(mockCommunityGeoJson,{
+    pointToLayer:function(feature,latlng){
+        return L.circleMarker(latlng,{radius:8,fillColor:"#2E86AB",color:"#fff",weight:2,fillOpacity:0.8});
+    },
+    onEachFeature:function(feature,layer){
+        const prop = feature.properties;
+        layer.bindPopup(`
+            <h4>小区信息</h4>
+            <p>小区名称：${prop.name}</p>
+            <p>居住人口：${prop.population}</p>
+            <p>原有可达性评分：${prop.score}</p>
+            <button onclick="gen15MinBuffer(${feature.geometry.coordinates[1]},${feature.geometry.coordinates[0]})">生成15分钟步行缓冲区</button>
+        `);
+    }
+});
+
+let facilityLayer = L.geoJSON(mockFacilityGeoJson,{
+    pointToLayer:function(feature,latlng){
+        return L.circleMarker(latlng,{radius:6,fillColor:"#F24236",color:"#fff",weight:1,fillOpacity:0.85});
+    },
+    onEachFeature:function(feature,layer){
+        const prop = feature.properties;
+        layer.bindPopup(`
+            <h4>便民设施信息</h4>
+            <p>设施名称：${prop.name}</p>
+            <p>设施类型：${prop.type}</p>
+            <p>地址：${prop.address}</p>
+        `)
+    }
+});
+communityLayer.addTo(map);
+facilityLayer.addTo(map);
+
+let bufferLayer = null;
+let drawGroup = new L.FeatureGroup();
+map.addLayer(drawGroup);
+
+// =========3.生成15分钟步行缓冲区（步行15分钟≈1200米）=========
+window.gen15MinBuffer = function(lat,lng){
+    if(bufferLayer) map.removeLayer(bufferLayer);
+    bufferLayer = L.circle([lat,lng],{radius:1200,color:"#ff9500",fillColor:"#ffbc6b",fillOpacity:0.25,weight:2}).addTo(map);
+
+    let facInBuffer = 0;
+    let comInBuffer = 0;
+    facilityLayer.eachLayer(layer=>{
+        if(bufferLayer.getBounds().contains(layer.getLatLng())) facInBuffer++;
+    })
+    communityLayer.eachLayer(layer=>{
+        if(bufferLayer.getBounds().contains(layer.getLatLng())) comInBuffer++;
+    })
+    document.getElementById("facCount").innerText = facInBuffer;
+    document.getElementById("comCount").innerText = comInBuffer;
+    let score = Math.min(100,Math.round(facInBuffer*18 + comInBuffer*5));
+    document.getElementById("score").innerText = score;
+}
+
+// =========4.顶部下拉图层切换=========
+document.getElementById("layerSwitch").onchange = function(e){
+    const val = e.target.value;
+    switch(val){
+        case "all":
+            communityLayer.addTo(map);
+            facilityLayer.addTo(map);
+            document.getElementById("ckCommunity").checked=true;
+            document.getElementById("ckFacility").checked=true;
+            break;
+        case "community":
+            map.removeLayer(facilityLayer);
+            communityLayer.addTo(map);
+            document.getElementById("ckCommunity").checked=true;
+            document.getElementById("ckFacility").checked=false;
+            break;
+        case "facility":
+            map.removeLayer(communityLayer);
+            facilityLayer.addTo(map);
+            document.getElementById("ckCommunity").checked=false;
+            document.getElementById("ckFacility").checked=true;
+            break;
+        case "none":
+            map.removeLayer(communityLayer);
+            map.removeLayer(facilityLayer);
+            document.getElementById("ckCommunity").checked=false;
+            document.getElementById("ckFacility").checked=false;
+            break;
+    }
+}
+
+// 左侧复选框控制
+document.getElementById("ckCommunity").addEventListener("change",function(){
+    if(this.checked) communityLayer.addTo(map);
+    else map.removeLayer(communityLayer);
+})
+document.getElementById("ckFacility").addEventListener("change",function(){
+    if(this.checked) facilityLayer.addTo(map);
+    else map.removeLayer(facilityLayer);
+})
+document.getElementById("ckBuffer").addEventListener("change",function(){
+    if(bufferLayer){
+        if(this.checked) bufferLayer.addTo(map);
+        else map.removeLayer(bufferLayer);
+    }
+})
+
+// =========5.关键词检索=========
+function doSearch(){
+    let keyword = document.getElementById("searchInput").value.trim().toLowerCase();
+    if(!keyword) return alert("请输入检索关键词");
+    let targetLayer = null;
+
+    //优先匹配小区
+    communityLayer.eachLayer(layer=>{
+        const name = layer.feature.properties.name.toLowerCase();
+        if(name.includes(keyword) && !targetLayer){
+            targetLayer = layer;
+        }
+    })
+    //小区没找到，匹配便民设施
+    if(!targetLayer){
+        facilityLayer.eachLayer(layer=>{
+            const name = layer.feature.properties.name.toLowerCase();
+            if(name.includes(keyword) && !targetLayer){
+                targetLayer = layer;
+            }
+        })
+    }
+
+    if(targetLayer){
+        //定位到点位，放大15级
+        map.setView(targetLayer.getLatLng(),15);
+        //自动弹出该图层绑定的原生popup
+        targetLayer.openPopup();
+    }else{
+        alert("未检索到匹配的点位");
+    }
+}
+
+document.getElementById("searchBtn").onclick = doSearch;
+//回车也触发检索
+document.getElementById("searchInput").addEventListener("keydown",function(e){
+    if(e.key === "Enter") doSearch();
+})
+
+// =========6.框选查询功能 leaflet‑draw=========
+const drawControl = new L.Control.Draw({
+    draw:{polygon:false,circle:false,marker:false,polyline:false,rectangle:true},
+    edit:{featureGroup:drawGroup}
+});
+
+document.getElementById("boxQueryBtn").onclick = function(){
+    map.addControl(drawControl);
+    alert("请在地图上拖拽绘制矩形框，完成框选查询");
+}
+map.on(L.Draw.Event.CREATED,function(event){
+    const drawLayer = event.layer;
+    drawGroup.clearLayers();
+    drawGroup.addLayer(drawLayer);
+    const boxBounds = drawLayer.getBounds();
+    let facCnt=0,comCnt=0;
+    facilityLayer.eachLayer(l=>{if(boxBounds.contains(l.getLatLng())) facCnt++;})
+    communityLayer.eachLayer(l=>{if(boxBounds.contains(l.getLatLng())) comCnt++;})
+    alert(`框选查询结果：小区${comCnt}个，便民设施${facCnt}个`);
+})
+
+// =========7.清除绘制与缓冲区=========
+document.getElementById("clearBtn").onclick = function(){
+    drawGroup.clearLayers();
+    if(bufferLayer) map.removeLayer(bufferLayer);
+    document.getElementById("ckBuffer").checked = true;
+    document.getElementById("facCount").innerText =0;
+    document.getElementById("comCount").innerText =0;
+    document.getElementById("score").innerText="--";
+}
+</script>
+</body>
+</html>
