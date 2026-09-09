@@ -3,6 +3,52 @@
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.springboot.mapper.FacilityMapper">
 
+    <!-- 查询全部有效设施列表（status=1） -->
+    <select id="selectAll" resultType="com.example.springboot.entity.Facility">
+        SELECT facility_id, facility_name, category_id, address,
+               longitude, latitude, source, poi_id, status, create_time
+        FROM facility
+        WHERE status = 1
+        ORDER BY facility_id
+    </select>
+
+    <!-- 根据ID查询单个设施详情 -->
+    <select id="selectById" resultType="com.example.springboot.entity.Facility">
+        SELECT facility_id, facility_name, category_id, address,
+               longitude, latitude, source, poi_id, status, create_time
+        FROM facility
+        WHERE facility_id = #{facilityId}
+    </select>
+
+    <!-- 新增设施（location空间字段由经纬度构建，SQL Server Point参数顺序：先纬度后经度） -->
+    <insert id="insert" parameterType="com.example.springboot.entity.Facility" useGeneratedKeys="true" keyProperty="facilityId">
+        INSERT INTO facility(facility_name, category_id, address, longitude, latitude,
+                             location, source, poi_id, status)
+        VALUES(#{facilityName}, #{categoryId}, #{address}, #{longitude}, #{latitude},
+               geography::Point(#{latitude}, #{longitude}, 4326),
+               #{source}, #{poiId}, #{status})
+    </insert>
+
+    <!-- 修改设施（同步更新location空间字段） -->
+    <update id="update" parameterType="com.example.springboot.entity.Facility">
+        UPDATE facility
+        SET facility_name = #{facilityName},
+            category_id = #{categoryId},
+            address = #{address},
+            longitude = #{longitude},
+            latitude = #{latitude},
+            location = geography::Point(#{latitude}, #{longitude}, 4326),
+            source = #{source},
+            poi_id = #{poiId},
+            status = #{status}
+        WHERE facility_id = #{facilityId}
+    </update>
+
+    <!-- 根据ID删除设施（逻辑删除：status置为0，保留数据便于恢复） -->
+    <update id="deleteById">
+        UPDATE facility SET status = 0 WHERE facility_id = #{facilityId}
+    </update>
+
     <!-- 矩形框选范围内设施查询 -->
     <select id="selectFacilityByBounds" resultType="com.example.springboot.entity.Facility">
         SELECT facility_id, facility_name, category_id, address,
@@ -23,21 +69,21 @@
         WHERE status = 1
           AND location.STIntersects(@buf) = 1
     </select>
-<!-- 指定点位周边N米范围设施分类统计 -->
-<select id="selectPointBufferStats" resultType="com.example.springboot.entity.CommunityStatsVO">
-    DECLARE @point GEOGRAPHY = geography::Point(#{latitude}, #{longitude}, 4326);
-    DECLARE @buf GEOGRAPHY = @point.STBuffer(#{radius});
+    <!-- 指定点位周边N米范围设施分类统计 -->
+    <select id="selectPointBufferStats" resultType="com.example.springboot.entity.CommunityStatsVO">
+        DECLARE @point GEOGRAPHY = geography::Point(#{latitude}, #{longitude}, 4326);
+        DECLARE @buf GEOGRAPHY = @point.STBuffer(#{radius});
 
-    SELECT
-        fc.category_code AS categoryCode,
-        fc.category_name AS categoryName,
-        COUNT(f.facility_id) AS facilityCount
-    FROM facility f
-    INNER JOIN facility_category fc ON f.category_id = fc.category_id
-    WHERE f.location.STIntersects(@buf) = 1
-      AND f.status = 1
-    GROUP BY fc.category_code, fc.category_name
-    ORDER BY fc.category_code
-</select>
+        SELECT
+            fc.category_code AS categoryCode,
+            fc.category_name AS categoryName,
+            COUNT(f.facility_id) AS facilityCount
+        FROM facility f
+        INNER JOIN facility_category fc ON f.category_id = fc.category_id
+        WHERE f.location.STIntersects(@buf) = 1
+          AND f.status = 1
+        GROUP BY fc.category_code, fc.category_name
+        ORDER BY fc.category_code
+    </select>
 
 </mapper>

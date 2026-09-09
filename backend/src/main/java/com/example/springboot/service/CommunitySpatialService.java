@@ -11,6 +11,18 @@ public interface CommunitySpatialService {
     // 查询全部小区列表
     List<Community> listAllCommunity();
 
+    // 根据ID查询小区详情
+    Community getById(Integer id);
+
+    // 新增小区
+    void add(Community community);
+
+    // 修改小区
+    void edit(Community community);
+
+    // 删除小区
+    void remove(Integer id);
+
     // 单个小区15分钟生活圈缓冲区分类统计
     List<CommunityStatsVO> getCommunity15MinStats(Integer communityId, Integer radiusM);
 

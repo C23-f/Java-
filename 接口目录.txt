@@ -13,7 +13,7 @@ SpringbootSpatialApplication.java
 【common 包】—— 通用工具 / 基础类
 ------------------------------------------------------------
 Result.java
-  统一返回结果类，所有接口都返回 {code, message, data} 结构
+  统一返回结果类，所有接口都返回 {code, msg, data} 结构
 
 BizException.java
   自定义业务异常，代码里想主动报错时 throw new BizException("xxx")

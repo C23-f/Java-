@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.RoleMapper">
+
+    <!-- 查询全部角色 -->
+    <select id="findAll" resultType="com.example.springboot.entity.Role">
+        SELECT role_id, role_code, role_name, description, create_time
+        FROM sys_role
+        ORDER BY role_id
+    </select>
+
+    <!-- 按ID查询角色 -->
+    <select id="findById" resultType="com.example.springboot.entity.Role">
+        SELECT role_id, role_code, role_name, description, create_time
+        FROM sys_role
+        WHERE role_id = #{id}
+    </select>
+
+    <!-- 新增角色，自增主键回填 -->
+    <insert id="insert" parameterType="com.example.springboot.entity.Role"
+            useGeneratedKeys="true" keyProperty="roleId">
+        INSERT INTO sys_role (role_code, role_name, description)
+        VALUES (#{roleCode}, #{roleName}, #{description})
+    </insert>
+
+    <!-- 修改角色 -->
+    <update id="update" parameterType="com.example.springboot.entity.Role">
+        UPDATE sys_role
+        SET role_code = #{roleCode},
+            role_name = #{roleName},
+            description = #{description}
+        WHERE role_id = #{roleId}
+    </update>
+
+    <!-- 按ID删除角色 -->
+    <delete id="delete">
+        DELETE FROM sys_role WHERE role_id = #{id}
+    </delete>
+
+</mapper>

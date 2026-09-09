@@ -14,9 +14,12 @@ import java.util.List;
 
 /**
  * 登录与权限校验拦截器
- * 拦截所有 /api/** 请求（登录接口除外），做两步校验：
+ * 拦截所有 /api/** 请求（登录/注册接口已在 WebConfig 放行），做两步校验：
  *   1. 令牌校验：解析 Authorization 请求头里的 JWT，失败返回 401
  *   2. 角色权限：根据路径和请求方式判断当前角色是否有权访问，无权返回 403
+ *
+ * 特殊规则：小区(/api/community/**)和设施(/api/facility/**)的 GET 查询请求公开放行，
+ * 供前端地图页面未登录时浏览；增删改(POST/PUT/DELETE)仍需登录+admin/operator角色。
  */
 @Component
 public class JwtInterceptor implements HandlerInterceptor {
@@ -25,11 +28,24 @@ public class JwtInterceptor implements HandlerInterceptor {
     private static final List<String> DATA_WRITE_PREFIX =
             List.of("/api/community", "/api/facility", "/api/category");
 
+    /** 公开只读路径前缀（GET 请求无需登录） */
+    private static final List<String> PUBLIC_READ_PREFIX =
+            List.of("/api/community/", "/api/facility/");
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+
         // CORS 预检请求直接放行
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+        if ("OPTIONS".equalsIgnoreCase(method)) {
+            return true;
+        }
+
+        // 小区/设施的 GET 查询请求公开放行（前端地图页面无需登录即可浏览POI）
+        if ("GET".equalsIgnoreCase(method)
+                && PUBLIC_READ_PREFIX.stream().anyMatch(uri::startsWith)) {
             return true;
         }
 
@@ -54,8 +70,6 @@ public class JwtInterceptor implements HandlerInterceptor {
         }
 
         // ---------- 第二步：角色权限校验 ----------
-        String uri = request.getRequestURI();
-        String method = request.getMethod();
         String roleCode = UserContext.get().getRoleCode();
 
         // 用户管理 / 角色管理：仅 admin（/api/user/info 除外，所有登录用户都可查自己）
@@ -82,10 +96,10 @@ public class JwtInterceptor implements HandlerInterceptor {
         UserContext.clear();
     }
 
-    /** 以统一 Result 结构输出 401/403 */
+    /** 以统一 Result 结构输出 401/403（字段名与 Result 类保持一致：code/msg/data） */
     private boolean writeJson(HttpServletResponse response, int code, String message) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(String.format("{\"code\":%d,\"message\":\"%s\",\"data\":null}", code, message));
+        response.getWriter().write(String.format("{\"code\":%d,\"msg\":\"%s\",\"data\":null}", code, message));
         return false;
     }
 }

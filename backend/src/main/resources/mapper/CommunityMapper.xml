@@ -7,9 +7,50 @@
     <select id="selectAllCommunity" resultType="com.example.springboot.entity.Community">
         SELECT community_id, community_name, address, region_id,
                longitude, latitude, house_count, build_year,
-               walk_speed, description
+               walk_speed, description, create_time, update_time
         FROM community
+        ORDER BY community_id
     </select>
+
+    <!-- 根据ID查询单个小区详情 -->
+    <select id="selectById" resultType="com.example.springboot.entity.Community">
+        SELECT community_id, community_name, address, region_id,
+               longitude, latitude, house_count, build_year,
+               walk_speed, description, create_time, update_time
+        FROM community
+        WHERE community_id = #{communityId}
+    </select>
+
+    <!-- 新增小区（location空间字段由经纬度构建，SQL Server Point参数顺序：先纬度后经度） -->
+    <insert id="insert" parameterType="com.example.springboot.entity.Community" useGeneratedKeys="true" keyProperty="communityId">
+        INSERT INTO community(community_name, address, region_id, longitude, latitude,
+                              location, house_count, build_year, walk_speed, description)
+        VALUES(#{communityName}, #{address}, #{regionId}, #{longitude}, #{latitude},
+               geography::Point(#{latitude}, #{longitude}, 4326),
+               #{houseCount}, #{buildYear}, #{walkSpeed}, #{description})
+    </insert>
+
+    <!-- 修改小区（同步更新location空间字段和update_time） -->
+    <update id="update" parameterType="com.example.springboot.entity.Community">
+        UPDATE community
+        SET community_name = #{communityName},
+            address = #{address},
+            region_id = #{regionId},
+            longitude = #{longitude},
+            latitude = #{latitude},
+            location = geography::Point(#{latitude}, #{longitude}, 4326),
+            house_count = #{houseCount},
+            build_year = #{buildYear},
+            walk_speed = #{walkSpeed},
+            description = #{description},
+            update_time = SYSUTCDATETIME()
+        WHERE community_id = #{communityId}
+    </update>
+
+    <!-- 根据ID删除小区（物理删除） -->
+    <delete id="deleteById">
+        DELETE FROM community WHERE community_id = #{communityId}
+    </delete>
 
     <!-- 调用存储过程：15分钟缓冲区分类统计 -->
     <select id="callStatsProc" resultType="com.example.springboot.entity.CommunityStatsVO" statementType="CALLABLE">

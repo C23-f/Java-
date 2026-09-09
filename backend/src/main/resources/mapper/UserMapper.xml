@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.UserMapper">
+
+    <!-- 公共查询列：用户表 + 联表角色名/角色编码 -->
+    <sql id="userColumns">
+        u.user_id, u.username, u.password, u.real_name, u.phone,
+        u.role_id, u.status, u.create_time, u.update_time,
+        r.role_name AS roleName, r.role_code AS roleCode
+    </sql>
+
+    <!-- 按用户名查询（登录用，联表带出角色信息） -->
+    <select id="findByUsername" resultType="com.example.springboot.entity.User">
+        SELECT <include refid="userColumns"/>
+        FROM sys_user u
+        LEFT JOIN sys_role r ON u.role_id = r.role_id
+        WHERE u.username = #{username}
+    </select>
+
+    <!-- 按ID查询 -->
+    <select id="findById" resultType="com.example.springboot.entity.User">
+        SELECT <include refid="userColumns"/>
+        FROM sys_user u
+        LEFT JOIN sys_role r ON u.role_id = r.role_id
+        WHERE u.user_id = #{id}
+    </select>
+
+    <!-- 查询全部用户（联表带出角色信息） -->
+    <select id="findAll" resultType="com.example.springboot.entity.User">
+        SELECT <include refid="userColumns"/>
+        FROM sys_user u
+        LEFT JOIN sys_role r ON u.role_id = r.role_id
+        ORDER BY u.user_id
+    </select>
+
+    <!-- 新增用户，自增主键回填到 user.userId -->
+    <insert id="insert" parameterType="com.example.springboot.entity.User"
+            useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO sys_user (username, password, real_name, phone, role_id, status)
+        VALUES (#{username}, #{password}, #{realName}, #{phone}, #{roleId}, #{status})
+    </insert>
+
+    <!-- 动态更新用户：
+         username 传 null 表示不修改（防止唯一约束冲突）
+         password 传 null 表示不修改密码
+         其余字段为 null 时不更新 -->
+    <update id="update" parameterType="com.example.springboot.entity.User">
+        UPDATE sys_user
+        <set>
+            <if test="password != null">password = #{password},</if>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="roleId != null">role_id = #{roleId},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = SYSUTCDATETIME()
+        </set>
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 按ID删除用户 -->
+    <delete id="delete">
+        DELETE FROM sys_user WHERE user_id = #{id}
+    </delete>
+
+</mapper>

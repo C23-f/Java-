@@ -11,6 +11,18 @@ public interface CommunityMapper {
     // 查询全部小区列表
     List<Community> selectAllCommunity();
 
+    // 根据ID查询单个小区详情
+    Community selectById(@Param("communityId") Integer communityId);
+
+    // 新增小区
+    int insert(Community community);
+
+    // 修改小区
+    int update(Community community);
+
+    // 根据ID删除小区（物理删除）
+    int deleteById(@Param("communityId") Integer communityId);
+
     // 调用存储过程：获取15分钟缓冲区分类统计
     List<CommunityStatsVO> callStatsProc(@Param("communityId") Integer communityId, @Param("radiusM") Integer radiusM);
 

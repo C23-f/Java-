@@ -9,6 +9,22 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
 import java.util.List;
 
+/**
+ * 小区 Controller
+ *
+ * 查询接口（GET）公开访问，前端地图页面无需登录即可浏览：
+ *   小区列表：GET /api/community/list
+ *   小区详情：GET /api/community/{id}
+ *   15分钟统计：GET /api/community/stats/{id}
+ *   可达性评分：GET /api/community/score/{id}
+ *   批量评分：GET /api/community/score/batch
+ *   缓冲区统计：GET /api/community/circleStats
+ *
+ * 增删改接口（POST/PUT/DELETE）需登录，仅 admin/operator 可操作：
+ *   新增小区：POST /api/community
+ *   修改小区：PUT /api/community
+ *   删除小区：DELETE /api/community/{id}
+ */
 @RestController
 @RequestMapping("/api/community")
 public class CommunitySpatialController {
@@ -21,6 +37,34 @@ public class CommunitySpatialController {
     public Result<List<Community>> listAll() {
         List<Community> list = communitySpatialService.listAllCommunity();
         return Result.success(list);
+    }
+
+    // 根据ID查询小区详情
+    @GetMapping("/{id:\\d+}")
+    public Result<Community> getById(@PathVariable Integer id) {
+        Community community = communitySpatialService.getById(id);
+        return Result.success(community);
+    }
+
+    // 新增小区
+    @PostMapping
+    public Result<String> add(@RequestBody Community community) {
+        communitySpatialService.add(community);
+        return Result.success("新增成功");
+    }
+
+    // 修改小区
+    @PutMapping
+    public Result<String> edit(@RequestBody Community community) {
+        communitySpatialService.edit(community);
+        return Result.success("修改成功");
+    }
+
+    // 删除小区
+    @DeleteMapping("/{id:\\d+}")
+    public Result<String> remove(@PathVariable Integer id) {
+        communitySpatialService.remove(id);
+        return Result.success("删除成功");
     }
 
     // 获取单个小区15分钟生活圈分类统计

@@ -247,10 +247,11 @@ INSERT INTO dbo.sys_role (role_code, role_name, description) VALUES
  (N'viewer',   N'访客',       N'仅可查看地图与分析结果');
 GO
 
--- 4.2 用户（2个种子账号，密码明文存储，课程项目简单易用）
+-- 4.2 用户（2个种子账号，密码经 SHA2_256 加密存储，与后端 PasswordUtil 一致）
+--   admin/123456, operator/234567
 INSERT INTO dbo.sys_user (username, password, real_name, phone, role_id, status) VALUES
- (N'admin',    N'123456', N'张老师', N'13800000001', 1, 1),
- (N'operator', N'234567', N'李运营', N'13800000002', 2, 1);
+ (N'admin',    N'EC278A38901287B2771A13739520384D43E4B078F78AFFE702DEF108774CCE24', N'张老师', N'13800000001', 1, 1),
+ (N'operator', N'FFBDA5A63F42CD76BA7B395D19AC1625097790FE424A0E694333B54BB285ED4E', N'李运营', N'13800000002', 2, 1);
 GO
 
 -- 4.3 行政区划（2行：区县 + 示范片区，演示父子层级，显式主键需开启 IDENTITY_INSERT）

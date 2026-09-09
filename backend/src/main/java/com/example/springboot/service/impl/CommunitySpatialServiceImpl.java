@@ -1,5 +1,6 @@
 package com.example.springboot.service.impl;
 
+import com.example.springboot.common.BizException;
 import com.example.springboot.entity.AccessibilityScore;
 import com.example.springboot.entity.Community;
 import com.example.springboot.entity.CommunityStatsVO;
@@ -20,6 +21,80 @@ public class CommunitySpatialServiceImpl implements CommunitySpatialService {
     @Override
     public List<Community> listAllCommunity() {
         return communityMapper.selectAllCommunity();
+    }
+
+    @Override
+    public Community getById(Integer id) {
+        if (id == null) {
+            throw new BizException("小区ID不能为空");
+        }
+        return communityMapper.selectById(id);
+    }
+
+    @Override
+    public void add(Community community) {
+        // 非空校验
+        if (community.getCommunityName() == null || community.getCommunityName().trim().isEmpty()) {
+            throw new BizException("小区名称不能为空");
+        }
+        // 经纬度范围校验
+        validateLngLat(community.getLongitude(), community.getLatitude());
+        // 步行速度默认值
+        if (community.getWalkSpeed() == null) {
+            community.setWalkSpeed(1.2);
+        }
+        int rows = communityMapper.insert(community);
+        if (rows <= 0) {
+            throw new BizException("新增小区失败");
+        }
+    }
+
+    @Override
+    public void edit(Community community) {
+        if (community.getCommunityId() == null) {
+            throw new BizException("小区ID不能为空");
+        }
+        // 存在性校验
+        Community exist = communityMapper.selectById(community.getCommunityId());
+        if (exist == null) {
+            throw new BizException("小区不存在，ID=" + community.getCommunityId());
+        }
+        if (community.getCommunityName() == null || community.getCommunityName().trim().isEmpty()) {
+            throw new BizException("小区名称不能为空");
+        }
+        validateLngLat(community.getLongitude(), community.getLatitude());
+        int rows = communityMapper.update(community);
+        if (rows <= 0) {
+            throw new BizException("修改小区失败");
+        }
+    }
+
+    @Override
+    public void remove(Integer id) {
+        if (id == null) {
+            throw new BizException("小区ID不能为空");
+        }
+        Community exist = communityMapper.selectById(id);
+        if (exist == null) {
+            throw new BizException("小区不存在，ID=" + id);
+        }
+        int rows = communityMapper.deleteById(id);
+        if (rows <= 0) {
+            throw new BizException("删除小区失败");
+        }
+    }
+
+    /** 经纬度合法范围校验 */
+    private void validateLngLat(Double lng, Double lat) {
+        if (lng == null || lat == null) {
+            throw new BizException("经度和纬度不能为空");
+        }
+        if (lng < -180 || lng > 180) {
+            throw new BizException("经度不合法，有效范围 -180 ~ 180");
+        }
+        if (lat < -90 || lat > 90) {
+            throw new BizException("纬度不合法，有效范围 -90 ~ 90");
+        }
     }
 
     @Override
