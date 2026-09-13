@@ -54,3 +54,31 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pb
 ### 评价统计接口（前端图表饼图使用，返回待审核/通过/驳回数量）
 GET http://localhost:8080/api/evaluation/stats
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkyOTE0NzAsImV4cCI6MTc4OTM3Nzg3MH0.D4a3SxTScSJcJF2bpUTHxnjNBRND8R96XXqqHuXl4G8
+
+
+### 添加收藏
+POST http://localhost:8080/api/favorite/add
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkzMDEyNzcsImV4cCI6MTc4OTM4NzY3N30.2h2qP_MYERpBfVdt_cUFAqTOl_OP7ObiXb10YJQPZDY
+
+{
+"userId":1,
+"objectType":"community",
+"objectId":2,
+"remark":"喜欢这个小区"
+}
+
+
+
+### 取消收藏
+DELETE http://localhost:8080/api/favorite/delete?userId=1&objectType=community&objectId=2
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkzMDEyNzcsImV4cCI6MTc4OTM4NzY3N30.2h2qP_MYERpBfVdt_cUFAqTOl_OP7ObiXb10YJQPZDY
+
+### 获取我的收藏列表
+GET http://localhost:8080/api/favorite/list?userId=1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkzMDA0NTgsImV4cCI6MTc4OTM4Njg1OH0.xpb3knf22S7ETP1-z6PKeoPAKb7gltPD0uGUF06um2w
+
+### 判断是否收藏
+GET http://localhost:8080/api/favorite/isCollect?userId=1&objectType=community&objectId=2
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkzMDEyNzcsImV4cCI6MTc4OTM4NzY3N30.2h2qP_MYERpBfVdt_cUFAqTOl_OP7ObiXb10YJQPZDY
+

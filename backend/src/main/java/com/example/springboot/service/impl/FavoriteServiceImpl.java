@@ -1,30 +1,36 @@
 package com.example.springboot.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.springboot.entity.Favorite;
 import com.example.springboot.mapper.FavoriteMapper;
 import com.example.springboot.service.FavoriteService;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
+import jakarta.annotation.Resource;
+import java.util.List;
 
 @Service
-public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite>
-        implements FavoriteService {
+public class FavoriteServiceImpl implements FavoriteService {
+
+    @Resource
+    private FavoriteMapper favoriteMapper;
 
     @Override
-    public boolean addFavorite(Favorite favorite) {
-        favorite.setCreateTime(LocalDateTime.now());
-        //数据库有唯一约束 uk_user_obj，重复收藏会抛异常，controller捕获
-        return save(favorite);
+    public int addFavorite(Favorite favorite) {
+        // 这里调用自定义方法 insertCustom，不是insert！
+        return favoriteMapper.insertCustom(favorite);
     }
 
     @Override
-    public boolean removeFavorite(Integer userId, String objectType, Integer objectId) {
-        LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Favorite::getUserId, userId)
-                .eq(Favorite::getObjectType, objectType)
-                .eq(Favorite::getObjectId, objectId);
-        return remove(wrapper);
+    public int removeFavorite(Integer userId, String objectType, Integer objectId) {
+        return favoriteMapper.deleteByUserAndObj(userId,objectType,objectId);
+    }
+
+    @Override
+    public List<Favorite> getMyFavorite(Integer userId) {
+        return favoriteMapper.selectByUserId(userId);
+    }
+
+    @Override
+    public Favorite getExistFavorite(Integer userId, String objectType, Integer objectId) {
+        return favoriteMapper.selectExist(userId,objectType,objectId);
     }
 }

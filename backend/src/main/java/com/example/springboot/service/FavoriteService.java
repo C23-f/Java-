@@ -1,17 +1,11 @@
 package com.example.springboot.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.springboot.entity.Favorite;
+import java.util.List;
 
-public interface FavoriteService extends IService<Favorite> {
-
-    /**
-     * 添加收藏
-     */
-    boolean addFavorite(Favorite favorite);
-
-    /**
-     * 取消收藏
-     */
-    boolean removeFavorite(Integer userId, String objectType, Integer objectId);
+public interface FavoriteService {
+    int addFavorite(Favorite favorite);
+    int removeFavorite(Integer userId,String objectType,Integer objectId);
+    List<Favorite> getMyFavorite(Integer userId);
+    Favorite getExistFavorite(Integer userId,String objectType,Integer objectId);
 }
