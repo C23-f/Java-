@@ -73,6 +73,12 @@
     		<artifactId>mybatis-plus-boot-starter</artifactId>
     		<version>3.5.9</version>
 		</dependency>
+		<!-- Apache POI：Excel 导出（设施/小区/评价/收藏/可达分析报表） -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.5</version>
+		</dependency>
 	</dependencies>
 <build>
     <resources>

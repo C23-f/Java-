@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.OperationLogMapper">
+
+    <insert id="insert" parameterType="com.example.springboot.entity.OperationLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO operation_log(operator_id, operator_name, action_type, target_type, target_id, detail, create_time)
+        VALUES(#{operatorId}, #{operatorName}, #{actionType}, #{targetType}, #{targetId}, #{detail}, GETDATE())
+    </insert>
+
+    <!-- 分页查询操作日志 -->
+    <select id="selectLogPage" resultType="com.example.springboot.entity.OperationLog">
+        SELECT id, operator_id, operator_name, action_type, target_type, target_id, detail, create_time
+        FROM operation_log
+        <where>
+            <if test="operatorId != null">
+                operator_id = #{operatorId}
+            </if>
+            <if test="actionType != null and actionType != ''">
+                AND action_type = #{actionType}
+            </if>
+        </where>
+        ORDER BY id DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <!-- 统计操作日志总数 -->
+    <select id="countLog" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM operation_log
+        <where>
+            <if test="operatorId != null">
+                operator_id = #{operatorId}
+            </if>
+            <if test="actionType != null and actionType != ''">
+                AND action_type = #{actionType}
+            </if>
+        </where>
+    </select>
+
+</mapper>

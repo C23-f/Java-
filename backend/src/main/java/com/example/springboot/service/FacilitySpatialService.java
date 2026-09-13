@@ -2,6 +2,7 @@ package com.example.springboot.service;
 
 import com.example.springboot.entity.CommunityStatsVO;
 import com.example.springboot.entity.Facility;
+import com.example.springboot.entity.PageResult;
 import java.util.List;
 
 public interface FacilitySpatialService {
@@ -27,5 +28,14 @@ public interface FacilitySpatialService {
     List<Facility> listFacilityByPointBuffer(Double lng, Double lat, Integer radiusM);
 
     List<CommunityStatsVO> getPointBufferStats(Double longitude, Double latitude, Integer radius);
+
+    // ==================== 分页 + 全局搜索（新增） ====================
+
+    // 分页条件查询设施（keyword模糊名称 / categoryId分类 / districtId街道 / 评分下限）
+    PageResult<Facility> listFacilityPage(Integer pageNum, Integer pageSize, String keyword,
+                                          Integer categoryId, Integer districtId, Double minScore);
+
+    // 全局模糊搜索设施（按名称）
+    List<Facility> searchFacilities(String keyword);
 
 }

@@ -3,8 +3,10 @@ package com.example.springboot.service.impl;
 import com.example.springboot.common.BizException;
 import com.example.springboot.entity.CommunityStatsVO;
 import com.example.springboot.entity.Facility;
+import com.example.springboot.entity.PageResult;
 import com.example.springboot.mapper.FacilityMapper;
 import com.example.springboot.service.FacilitySpatialService;
+import com.example.springboot.service.OperationLogService;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
 import java.util.List;
@@ -14,6 +16,8 @@ public class FacilitySpatialServiceImpl implements FacilitySpatialService {
 
     @Resource
     private FacilityMapper facilityMapper;
+    @Resource
+    private OperationLogService operationLogService;
 
     @Override
     public List<Facility> listAll() {
@@ -47,6 +51,8 @@ public class FacilitySpatialServiceImpl implements FacilitySpatialService {
         if (rows <= 0) {
             throw new BizException("新增设施失败");
         }
+        operationLogService.log("新增", "facility", facility.getFacilityId(),
+                "新增设施：" + facility.getFacilityName());
     }
 
     @Override
@@ -70,6 +76,8 @@ public class FacilitySpatialServiceImpl implements FacilitySpatialService {
         if (rows <= 0) {
             throw new BizException("修改设施失败");
         }
+        operationLogService.log("修改", "facility", facility.getFacilityId(),
+                "修改设施：" + facility.getFacilityName());
     }
 
     @Override
@@ -85,6 +93,8 @@ public class FacilitySpatialServiceImpl implements FacilitySpatialService {
         if (rows <= 0) {
             throw new BizException("删除设施失败");
         }
+        operationLogService.log("删除", "facility", id,
+                "删除设施：" + exist.getFacilityName());
     }
 
     /** 经纬度合法范围校验 */
@@ -135,5 +145,22 @@ public class FacilitySpatialServiceImpl implements FacilitySpatialService {
         return facilityMapper.selectPointBufferStats(longitude, latitude, radius);
     }
 
+    // ==================== 分页 + 全局搜索（新增） ====================
+
+    @Override
+    public PageResult<Facility> listFacilityPage(Integer pageNum, Integer pageSize, String keyword,
+                                                 Integer categoryId, Integer districtId, Double minScore) {
+        int page = (pageNum == null || pageNum < 1) ? 1 : pageNum;
+        int size = (pageSize == null || pageSize < 1) ? 10 : pageSize;
+        int offset = (page - 1) * size;
+        Long total = facilityMapper.countFacility(keyword, categoryId, districtId, minScore);
+        List<Facility> list = facilityMapper.selectFacilityPage(offset, size, keyword, categoryId, districtId, minScore);
+        return PageResult.of(total, list, page, size);
+    }
+
+    @Override
+    public List<Facility> searchFacilities(String keyword) {
+        return facilityMapper.searchFacilities(keyword);
+    }
 
 }

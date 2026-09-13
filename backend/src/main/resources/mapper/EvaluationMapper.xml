@@ -56,4 +56,49 @@
             SUM(CASE WHEN status=2 THEN 1 ELSE 0 END) AS rejectCount
         FROM [evaluation]
     </select>
+
+    <!-- ==================== 分页 + 平均分联动（新增） ==================== -->
+
+    <!-- 分页查询评价（status可选） -->
+    <select id="selectEvaluationPage" resultType="com.example.springboot.entity.Evaluation">
+        SELECT id,object_type,object_id,user_id,score,content,status,reject_reason,create_time,audit_time,auditor_id
+        FROM evaluation
+        <where>
+            <if test="status != null">
+                status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <!-- 分页统计评价总数 -->
+    <select id="countEvaluation" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM evaluation
+        <where>
+            <if test="status != null">
+                status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 审核后重算对象平均分（objectType=community/facility，只统计已通过评价 status=1） -->
+    <update id="updateAvgScoreByObject">
+        <choose>
+            <when test="objectType == 'community'">
+                UPDATE community
+                SET avg_score = ISNULL((SELECT AVG(score) FROM [evaluation]
+                                        WHERE object_type = 'community' AND object_id = #{objectId} AND status = 1), 0)
+                WHERE community_id = #{objectId}
+            </when>
+            <when test="objectType == 'facility'">
+                UPDATE facility
+                SET avg_score = ISNULL((SELECT AVG(score) FROM [evaluation]
+                                        WHERE object_type = 'facility' AND object_id = #{objectId} AND status = 1), 0)
+                WHERE facility_id = #{objectId}
+            </when>
+        </choose>
+    </update>
+
 </mapper>

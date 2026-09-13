@@ -6,6 +6,7 @@ import com.example.springboot.service.FavoriteService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/favorite")
@@ -53,6 +54,20 @@ public class FavoriteController {
                                      @RequestParam Integer objectId){
         Favorite exist = favoriteService.getExistFavorite(userId, objectType, objectId);
         return Result.success(exist != null);
+    }
+
+    // 批量删除收藏（收藏面板批量勾选删除）
+    // POST /api/favorite/batchDelete  body: { "userId": 1, "ids": [1,2,3] }
+    @PostMapping("/batchDelete")
+    public Result<?> batchDelete(@RequestBody Map<String, Object> body){
+        Integer userId = (Integer) body.get("userId");
+        @SuppressWarnings("unchecked")
+        List<Integer> ids = (List<Integer>) body.get("ids");
+        if (userId == null || ids == null || ids.isEmpty()) {
+            return Result.error("参数不完整：需要 userId 和 ids");
+        }
+        int rows = favoriteService.removeBatch(userId, ids);
+        return Result.success("成功删除 " + rows + " 条收藏");
     }
 
 }

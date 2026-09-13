@@ -1,9 +1,11 @@
 package com.example.springboot.controller;
 
+import com.example.springboot.common.BizException;
 import com.example.springboot.common.Result;
 import com.example.springboot.entity.AccessibilityScore;
 import com.example.springboot.entity.Community;
 import com.example.springboot.entity.CommunityStatsVO;
+import com.example.springboot.entity.PageResult;
 import com.example.springboot.service.CommunitySpatialService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
@@ -19,6 +21,9 @@ import java.util.List;
  *   可达性评分：GET /api/community/score/{id}
  *   批量评分：GET /api/community/score/batch
  *   缓冲区统计：GET /api/community/circleStats
+ *   分页查询：GET /api/community/page
+ *   矩形框选：GET /api/community/bounds
+ *   周边小区：GET /api/community/buffer
  *
  * 增删改接口（POST/PUT/DELETE）需登录，仅 admin/operator 可操作：
  *   新增小区：POST /api/community
@@ -104,6 +109,62 @@ public class CommunitySpatialController {
         @RequestParam(defaultValue = "1000") Integer bufferMeter
     ){
     return Result.success(communitySpatialService.getCommunityCircleData(communityId,bufferMeter));
+    }
+
+    // ==================== 分页 + 空间查询（新增） ====================
+
+    // 分页条件查询小区
+    @GetMapping("/page")
+    public Result<PageResult<Community>> page(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer districtId,
+            @RequestParam(required = false) Double priceMin,
+            @RequestParam(required = false) Double priceMax,
+            @RequestParam(required = false) Double minScore) {
+        return Result.success(communitySpatialService.listCommunityPage(
+                page, size, keyword, districtId, priceMin, priceMax, minScore));
+    }
+
+    // 矩形框选范围内小区查询
+    @GetMapping("/bounds")
+    public Result<List<Community>> bounds(@RequestParam Double minLng,
+                                          @RequestParam Double maxLng,
+                                          @RequestParam Double minLat,
+                                          @RequestParam Double maxLat) {
+        validateBounds(minLng, maxLng, minLat, maxLat);
+        return Result.success(communitySpatialService.listCommunityByBounds(minLng, maxLng, minLat, maxLat));
+    }
+
+    // 指定点位周边N米范围内小区查询
+    @GetMapping("/buffer")
+    public Result<List<Community>> buffer(@RequestParam Double lng,
+                                          @RequestParam Double lat,
+                                          @RequestParam(defaultValue = "1000") Integer radius) {
+        validateRadius(lng, lat, radius);
+        return Result.success(communitySpatialService.listCommunityByPointBuffer(lng, lat, radius));
+    }
+
+    private void validateBounds(Double minLng, Double maxLng, Double minLat, Double maxLat) {
+        if (minLng == null || maxLng == null || minLat == null || maxLat == null) {
+            throw new BizException("经纬度范围参数不能为空");
+        }
+        if (minLng >= maxLng || minLat >= maxLat) {
+            throw new BizException("经纬度范围不合法：min 必须小于 max");
+        }
+    }
+
+    private void validateRadius(Double lng, Double lat, Integer radius) {
+        if (lng == null || lat == null || radius == null) {
+            throw new BizException("经纬度和缓冲区半径参数不能为空");
+        }
+        if (lng < -180 || lng > 180 || lat < -90 || lat > 90) {
+            throw new BizException("经纬度不合法");
+        }
+        if (radius <= 0 || radius > 5000) {
+            throw new BizException("缓冲区半径必须大于0且不超过5000米");
+        }
     }
 
 }

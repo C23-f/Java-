@@ -33,4 +33,12 @@ public class FavoriteServiceImpl implements FavoriteService {
     public Favorite getExistFavorite(Integer userId, String objectType, Integer objectId) {
         return favoriteMapper.selectExist(userId,objectType,objectId);
     }
+
+    @Override
+    public int removeBatch(Integer userId, List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return 0;
+        }
+        return favoriteMapper.deleteBatch(userId, ids);
+    }
 }

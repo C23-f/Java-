@@ -36,4 +36,39 @@ public interface CommunityMapper {
             @Param("communityId") Long communityId,
             @Param("bufferMeter") Integer bufferMeter
     );
+
+    // ==================== 分页 + 空间查询 + 全局搜索（新增） ====================
+
+    // 分页条件查询小区（keyword模糊名称 / districtId街道 / priceMin、priceMax房价区间 / minScore评分下限）
+    List<Community> selectCommunityPage(@Param("offset") Integer offset,
+                                        @Param("limit") Integer limit,
+                                        @Param("keyword") String keyword,
+                                        @Param("districtId") Integer districtId,
+                                        @Param("priceMin") Double priceMin,
+                                        @Param("priceMax") Double priceMax,
+                                        @Param("minScore") Double minScore);
+
+    // 分页条件统计小区总数（条件与 selectCommunityPage 一致）
+    Long countCommunity(@Param("keyword") String keyword,
+                        @Param("districtId") Integer districtId,
+                        @Param("priceMin") Double priceMin,
+                        @Param("priceMax") Double priceMax,
+                        @Param("minScore") Double minScore);
+
+    // 矩形框选范围内小区查询
+    List<Community> selectCommunityByBounds(@Param("minLng") Double minLng,
+                                            @Param("maxLng") Double maxLng,
+                                            @Param("minLat") Double minLat,
+                                            @Param("maxLat") Double maxLat);
+
+    // 指定点位周边N米范围内小区查询
+    List<Community> selectCommunityByPointBuffer(@Param("lng") Double lng,
+                                                 @Param("lat") Double lat,
+                                                 @Param("radiusM") Integer radiusM);
+
+    // 全局模糊搜索小区（按名称）
+    List<Community> searchCommunities(@Param("keyword") String keyword);
+
+    // 审核通过后重算小区平均分（只统计已通过评价）
+    int updateCommunityAvgScore(@Param("objectId") Integer objectId);
 }

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.StatsMapper">
+
+    <!-- 各类设施数量统计（有效设施，按分类分组） -->
+    <select id="facilityByCategory" resultType="java.util.Map">
+        SELECT fc.category_code AS categoryCode,
+               fc.category_name AS categoryName,
+               COUNT(f.facility_id) AS count
+        FROM facility f
+        INNER JOIN facility_category fc ON f.category_id = fc.category_id
+        WHERE f.status = 1
+        GROUP BY fc.category_code, fc.category_name, fc.sort_order
+        ORDER BY fc.sort_order
+    </select>
+
+    <!-- 可达性评分分布（按等级，取每个小区最新一次评分） -->
+    <select id="scoreDistribution" resultType="java.util.Map">
+        SELECT score_level AS name, COUNT(1) AS count
+        FROM (
+            SELECT community_id, score_level,
+                   ROW_NUMBER() OVER (PARTITION BY community_id ORDER BY analyze_time DESC) AS rn
+            FROM accessibility_score
+        ) t
+        WHERE rn = 1 AND score_level IS NOT NULL
+        GROUP BY score_level
+    </select>
+
+    <!-- 小区房价分布（按价格区间分组） -->
+    <select id="priceDistribution" resultType="java.util.Map">
+        SELECT CASE
+                 WHEN price &lt; 5000 THEN '5000以下'
+                 WHEN price &lt; 8000 THEN '5000-8000'
+                 WHEN price &lt; 10000 THEN '8000-10000'
+                 WHEN price &lt; 15000 THEN '10000-15000'
+                 ELSE '15000以上'
+               END AS name,
+               COUNT(1) AS count
+        FROM community
+        WHERE price IS NOT NULL
+        GROUP BY CASE
+                 WHEN price &lt; 5000 THEN '5000以下'
+                 WHEN price &lt; 8000 THEN '5000-8000'
+                 WHEN price &lt; 10000 THEN '8000-10000'
+                 WHEN price &lt; 15000 THEN '10000-15000'
+                 ELSE '15000以上'
+               END
+        ORDER BY MIN(price)
+    </select>
+
+    <!-- 可达性评分 Top N 设施 -->
+    <select id="topFacilities" resultType="java.util.Map">
+        SELECT TOP (#{limit})
+               f.facility_id AS facilityId,
+               f.facility_name AS name,
+               fc.category_name AS categoryName,
+               f.avg_score AS score
+        FROM facility f
+        LEFT JOIN facility_category fc ON f.category_id = fc.category_id
+        WHERE f.status = 1 AND f.avg_score &gt; 0
+        ORDER BY f.avg_score DESC
+    </select>
+
+    <!-- 全区域汇总指标（统计大屏） -->
+    <select id="overview" resultType="java.util.Map">
+        SELECT
+            (SELECT COUNT(1) FROM facility WHERE status = 1) AS facilityTotal,
+            (SELECT COUNT(1) FROM community) AS communityTotal,
+            (SELECT COUNT(1) FROM [evaluation]) AS evaluationTotal,
+            (SELECT COUNT(1) FROM [evaluation] WHERE status = 1) AS passEvalTotal,
+            (SELECT ISNULL(AVG(price), 0) FROM community WHERE price IS NOT NULL) AS avgPrice,
+            (SELECT ISNULL(AVG(avg_score), 0) FROM community) AS avgCommunityScore,
+            (SELECT ISNULL(AVG(avg_score), 0) FROM facility WHERE status = 1) AS avgFacilityScore,
+            (SELECT COUNT(1) FROM district) AS districtTotal
+    </select>
+
+    <!-- 视口密度统计：给定经纬度范围内设施数、小区数、面积与每平方公里密度 -->
+    <select id="density" resultType="java.util.Map">
+        DECLARE @minLng FLOAT = #{minLng};
+        DECLARE @maxLng FLOAT = #{maxLng};
+        DECLARE @minLat FLOAT = #{minLat};
+        DECLARE @maxLat FLOAT = #{maxLat};
+        DECLARE @poly GEOGRAPHY = geography::STPolyFromText(
+            'POLYGON((' +
+            CAST(@minLng AS VARCHAR(20)) + ' ' + CAST(@minLat AS VARCHAR(20)) + ',' +
+            CAST(@maxLng AS VARCHAR(20)) + ' ' + CAST(@minLat AS VARCHAR(20)) + ',' +
+            CAST(@maxLng AS VARCHAR(20)) + ' ' + CAST(@maxLat AS VARCHAR(20)) + ',' +
+            CAST(@minLng AS VARCHAR(20)) + ' ' + CAST(@maxLat AS VARCHAR(20)) + ',' +
+            CAST(@minLng AS VARCHAR(20)) + ' ' + CAST(@minLat AS VARCHAR(20)) +
+            '))', 4326);
+        SELECT
+            (SELECT COUNT(1) FROM facility
+             WHERE status = 1 AND longitude BETWEEN @minLng AND @maxLng AND latitude BETWEEN @minLat AND @maxLat) AS facilityCount,
+            (SELECT COUNT(1) FROM community
+             WHERE longitude BETWEEN @minLng AND @maxLng AND latitude BETWEEN @minLat AND @maxLat) AS communityCount,
+            (SELECT ISNULL(AVG(price), 0) FROM community
+             WHERE longitude BETWEEN @minLng AND @maxLng AND latitude BETWEEN @minLat AND @maxLat AND price IS NOT NULL) AS avgPrice,
+            (SELECT ISNULL(AVG(avg_score), 0) FROM community
+             WHERE longitude BETWEEN @minLng AND @maxLng AND latitude BETWEEN @minLat AND @maxLat) AS avgScore,
+            @poly.STArea() / 1000000.0 AS areaKm2,
+            (SELECT COUNT(1) FROM facility
+             WHERE status = 1 AND longitude BETWEEN @minLng AND @maxLng AND latitude BETWEEN @minLat AND @maxLat)
+                / NULLIF(@poly.STArea() / 1000000.0, 0) AS facilityDensityPerKm2
+    </select>
+
+</mapper>

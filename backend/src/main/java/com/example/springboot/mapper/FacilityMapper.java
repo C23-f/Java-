@@ -39,4 +39,25 @@ public interface FacilityMapper {
         @Param("radius") Integer radius
     );
 
+    // ==================== 分页 + 全局搜索 + 平均分联动（新增） ====================
+
+    // 分页条件查询设施（keyword模糊名称 / categoryId分类 / districtId街道 / minScore评分下限）
+    List<Facility> selectFacilityPage(@Param("offset") Integer offset,
+                                      @Param("limit") Integer limit,
+                                      @Param("keyword") String keyword,
+                                      @Param("categoryId") Integer categoryId,
+                                      @Param("districtId") Integer districtId,
+                                      @Param("minScore") Double minScore);
+
+    // 分页条件统计设施总数（条件与 selectFacilityPage 一致）
+    Long countFacility(@Param("keyword") String keyword,
+                       @Param("categoryId") Integer categoryId,
+                       @Param("districtId") Integer districtId,
+                       @Param("minScore") Double minScore);
+
+    // 全局模糊搜索设施（按名称）
+    List<Facility> searchFacilities(@Param("keyword") String keyword);
+
+    // 审核通过后重算设施平均分（只统计已通过评价 status=1）
+    int updateFacilityAvgScore(@Param("objectId") Integer objectId);
 }

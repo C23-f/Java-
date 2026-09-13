@@ -1,6 +1,7 @@
 package com.example.springboot.controller;
 import com.example.springboot.common.Result;
 import com.example.springboot.entity.Evaluation;
+import com.example.springboot.entity.PageResult;
 import com.example.springboot.service.EvaluationService;
 import com.example.springboot.common.JwtUtil;
 import jakarta.annotation.Resource;
@@ -117,6 +118,18 @@ public Result<List<Evaluation>> list(
     public Result<?> stats(){
         Map<String,Object> data = evaluationService.getEvaluationStats();
         return Result.success(data);
+    }
+
+    /**
+     * 分页查询评价列表（数据管理页分页展示）
+     * GET /api/evaluation/page?status=&page=&size=
+     */
+    @GetMapping("/page")
+    public Result<PageResult<Evaluation>> page(
+            @RequestParam(required = false) Integer status,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size){
+        return Result.success(evaluationService.listEvaluationPage(status, page, size));
     }
 
 }

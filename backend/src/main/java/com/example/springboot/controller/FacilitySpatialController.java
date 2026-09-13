@@ -3,6 +3,7 @@ package com.example.springboot.controller;
 import com.example.springboot.common.Result;
 import com.example.springboot.entity.CommunityStatsVO;
 import com.example.springboot.entity.Facility;
+import com.example.springboot.entity.PageResult;
 import com.example.springboot.service.FacilitySpatialService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
@@ -17,6 +18,7 @@ import java.util.List;
  *   矩形框选：GET /api/facility/bounds
  *   点位缓冲区：GET /api/facility/buffer
  *   点位分类统计：GET /api/facility/pointStats
+ *   分页查询：GET /api/facility/page
  *
  * 增删改接口（POST/PUT/DELETE）需登录，仅 admin/operator 可操作：
  *   新增设施：POST /api/facility
@@ -91,6 +93,21 @@ public class FacilitySpatialController {
             @RequestParam(defaultValue = "1000") Integer radius) {
         List<CommunityStatsVO> stats = facilitySpatialService.getPointBufferStats(longitude, latitude, radius);
         return Result.success(stats);
+    }
+
+    // ==================== 分页（新增） ====================
+
+    // 分页条件查询设施
+    @GetMapping("/page")
+    public Result<PageResult<Facility>> page(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) Integer districtId,
+            @RequestParam(required = false) Double minScore) {
+        return Result.success(facilitySpatialService.listFacilityPage(
+                page, size, keyword, categoryId, districtId, minScore));
     }
 
 }

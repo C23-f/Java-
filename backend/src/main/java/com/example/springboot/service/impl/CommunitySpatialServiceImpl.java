@@ -4,9 +4,11 @@ import com.example.springboot.common.BizException;
 import com.example.springboot.entity.AccessibilityScore;
 import com.example.springboot.entity.Community;
 import com.example.springboot.entity.CommunityStatsVO;
+import com.example.springboot.entity.PageResult;
 import com.example.springboot.entity.SpatialCircleVO;
 import com.example.springboot.mapper.CommunityMapper;
 import com.example.springboot.service.CommunitySpatialService;
+import com.example.springboot.service.OperationLogService;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
 import java.util.ArrayList;
@@ -17,6 +19,8 @@ public class CommunitySpatialServiceImpl implements CommunitySpatialService {
 
     @Resource
     private CommunityMapper communityMapper;
+    @Resource
+    private OperationLogService operationLogService;
 
     @Override
     public List<Community> listAllCommunity() {
@@ -47,6 +51,8 @@ public class CommunitySpatialServiceImpl implements CommunitySpatialService {
         if (rows <= 0) {
             throw new BizException("新增小区失败");
         }
+        operationLogService.log("新增", "community", community.getCommunityId(),
+                "新增小区：" + community.getCommunityName());
     }
 
     @Override
@@ -67,6 +73,8 @@ public class CommunitySpatialServiceImpl implements CommunitySpatialService {
         if (rows <= 0) {
             throw new BizException("修改小区失败");
         }
+        operationLogService.log("修改", "community", community.getCommunityId(),
+                "修改小区：" + community.getCommunityName());
     }
 
     @Override
@@ -82,6 +90,8 @@ public class CommunitySpatialServiceImpl implements CommunitySpatialService {
         if (rows <= 0) {
             throw new BizException("删除小区失败");
         }
+        operationLogService.log("删除", "community", id,
+                "删除小区：" + exist.getCommunityName());
     }
 
     /** 经纬度合法范围校验 */
@@ -119,9 +129,38 @@ public class CommunitySpatialServiceImpl implements CommunitySpatialService {
         }
         return resultList;
     }
+
     @Override
     public List<SpatialCircleVO> getCommunityCircleData(Long communityId, Integer bufferMeter) {
-    return communityMapper.getCommunitySpatialCircle(communityId, bufferMeter);
+        return communityMapper.getCommunitySpatialCircle(communityId, bufferMeter);
+    }
+
+    // ==================== 分页 + 空间查询 + 全局搜索（新增） ====================
+
+    @Override
+    public PageResult<Community> listCommunityPage(Integer pageNum, Integer pageSize, String keyword,
+                                                   Integer districtId, Double priceMin, Double priceMax, Double minScore) {
+        int page = (pageNum == null || pageNum < 1) ? 1 : pageNum;
+        int size = (pageSize == null || pageSize < 1) ? 10 : pageSize;
+        int offset = (page - 1) * size;
+        Long total = communityMapper.countCommunity(keyword, districtId, priceMin, priceMax, minScore);
+        List<Community> list = communityMapper.selectCommunityPage(offset, size, keyword, districtId, priceMin, priceMax, minScore);
+        return PageResult.of(total, list, page, size);
+    }
+
+    @Override
+    public List<Community> listCommunityByBounds(Double minLng, Double maxLng, Double minLat, Double maxLat) {
+        return communityMapper.selectCommunityByBounds(minLng, maxLng, minLat, maxLat);
+    }
+
+    @Override
+    public List<Community> listCommunityByPointBuffer(Double lng, Double lat, Integer radiusM) {
+        return communityMapper.selectCommunityByPointBuffer(lng, lat, radiusM);
+    }
+
+    @Override
+    public List<Community> searchCommunities(String keyword) {
+        return communityMapper.searchCommunities(keyword);
     }
 
 }

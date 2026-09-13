@@ -21,4 +21,14 @@
         WHERE user_id = #{userId} AND object_type = #{objectType} AND object_id = #{objectId}
     </select>
 
+    <!-- 批量删除收藏（仅限当前用户自己的收藏记录） -->
+    <delete id="deleteBatch">
+        DELETE FROM favorite
+        WHERE user_id = #{userId}
+          AND id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
 </mapper>
