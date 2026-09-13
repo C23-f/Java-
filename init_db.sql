@@ -35,6 +35,10 @@ GO
 -- ======================================================================
 IF OBJECT_ID('dbo.accessibility_score', 'U') IS NOT NULL DROP TABLE dbo.accessibility_score;
 IF OBJECT_ID('dbo.operation_log', 'U') IS NOT NULL DROP TABLE dbo.operation_log;
+IF OBJECT_ID('dbo.evaluation', 'U') IS NOT NULL DROP TABLE dbo.evaluation;
+IF OBJECT_ID('dbo.favorite', 'U') IS NOT NULL DROP TABLE dbo.favorite;
+IF OBJECT_ID('dbo.analysis_plan', 'U') IS NOT NULL DROP TABLE dbo.analysis_plan;
+IF OBJECT_ID('dbo.district', 'U') IS NOT NULL DROP TABLE dbo.district;
 IF OBJECT_ID('dbo.facility', 'U') IS NOT NULL DROP TABLE dbo.facility;
 IF OBJECT_ID('dbo.community', 'U') IS NOT NULL DROP TABLE dbo.community;
 IF OBJECT_ID('dbo.facility_staging', 'U') IS NOT NULL DROP TABLE dbo.facility_staging;
@@ -113,6 +117,11 @@ CREATE TABLE dbo.community (
     house_count    INT           NULL,                        -- 户数
     build_year     INT           NULL,                        -- 建成年份
     walk_speed     FLOAT         NOT NULL DEFAULT 1.2,        -- 步行速度(米/秒)，默认1.2≈15分钟1000米
+    price          DECIMAL(10,2) NULL,                        -- 房价 元/㎡
+    avg_score      DECIMAL(3,2)  NOT NULL DEFAULT 0,          -- 用户平均分 0-5
+    household      INT           NULL,                        -- 户数
+    population     INT           NULL,                        -- 人口
+    district_id    INT           NULL,                        -- 关联街道id
     description    NVARCHAR(500) NULL,
     create_time    DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
     update_time    DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
@@ -152,6 +161,10 @@ CREATE TABLE dbo.facility (
     source        NVARCHAR(50)  NULL,                         -- 数据来源(高德/百度等)
     poi_id        NVARCHAR(64)  NULL,                         -- 原始POI ID(去重依据)
     status        TINYINT       NOT NULL DEFAULT 1,           -- 1有效 0停用
+    avg_score     DECIMAL(3,2)  NOT NULL DEFAULT 0,           -- 设施平均分 0-5
+    open_time     NVARCHAR(100) NULL,                         -- 开放时间
+    phone         NVARCHAR(50)  NULL,                         -- 联系电话
+    district_id   INT           NULL,                         -- 关联街道id
     create_time   DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
     CONSTRAINT CK_facility_lat CHECK (latitude  IS NULL OR (latitude  BETWEEN -90  AND 90)),
     CONSTRAINT CK_facility_lng CHECK (longitude IS NULL OR (longitude BETWEEN -180 AND 180)),
@@ -186,14 +199,15 @@ GO
 -- 2.8 操作日志表 operation_log
 -- ---------------------------------------------------------------
 CREATE TABLE dbo.operation_log (
-    log_id      BIGINT IDENTITY(1,1) PRIMARY KEY,
-    user_id     INT           NULL,
-    action      NVARCHAR(100) NOT NULL,                       -- 操作内容
-    module      NVARCHAR(50)  NULL,                           -- 所属模块
-    detail      NVARCHAR(500) NULL,
-    ip          NVARCHAR(50)  NULL,
-    create_time DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
-    CONSTRAINT FK_log_user FOREIGN KEY (user_id) REFERENCES dbo.sys_user(user_id)
+    id            INT IDENTITY(1,1) PRIMARY KEY,
+    operator_id   INT           NOT NULL,                 -- 操作人id
+    operator_name NVARCHAR(50)  NOT NULL,                 -- 操作人姓名
+    action_type   NVARCHAR(50)  NOT NULL,                 -- 新增/修改/删除/评价审核
+    target_type   NVARCHAR(20)  NOT NULL,                 -- 操作对象类型
+    target_id     INT           NULL,                     -- 操作对象id
+    detail        NVARCHAR(1000) NULL,                    -- 操作详情
+    create_time   DATETIME      DEFAULT GETDATE(),
+    CONSTRAINT FK_log_operator FOREIGN KEY (operator_id) REFERENCES dbo.sys_user(user_id)
 );
 GO
 
@@ -213,7 +227,73 @@ CREATE TABLE dbo.facility_staging (
     process_status  TINYINT       NOT NULL DEFAULT 0          -- 0待处理 1已清洗 2已入库
 );
 GO
+-- ---------------------------------------------------------------
+-- 2.10 评价表 evaluation（小区/设施统一评价，object_type区分）
+-- ---------------------------------------------------------------
+CREATE TABLE dbo.evaluation (
+    id            INT IDENTITY(1,1) PRIMARY KEY,
+    object_type   NVARCHAR(20)  NOT NULL,                     -- community=小区 / facility=设施
+    object_id     INT           NOT NULL,                     -- 小区ID或设施ID
+    user_id       INT           NOT NULL,                     -- 评价用户
+    score         DECIMAL(3,2)  NOT NULL,                     -- 星级 0-5
+    content       NVARCHAR(1000) NULL,                        -- 评价内容
+    status        TINYINT       NOT NULL DEFAULT 0,           -- 0待审核 1已通过 2已驳回
+    reject_reason NVARCHAR(500)  NULL,                        -- 驳回原因
+    create_time   DATETIME      DEFAULT GETDATE(),
+    audit_time    DATETIME      NULL,
+    auditor_id    INT           NULL,                         -- 审核人
+    CONSTRAINT FK_eval_user    FOREIGN KEY (user_id)    REFERENCES dbo.sys_user(user_id),
+    CONSTRAINT FK_eval_auditor FOREIGN KEY (auditor_id) REFERENCES dbo.sys_user(user_id)
+);
+GO
 
+-- ---------------------------------------------------------------
+-- 2.11 收藏表 favorite（加分项支持remark备注，联合唯一防重复收藏）
+-- ---------------------------------------------------------------
+CREATE TABLE dbo.favorite (
+    id          INT IDENTITY(1,1) PRIMARY KEY,
+    user_id     INT           NOT NULL,
+    object_type NVARCHAR(20)  NOT NULL,                       -- community=小区 / facility=设施
+    object_id   INT           NOT NULL,
+    remark      NVARCHAR(200) NULL,                           -- 收藏备注标签
+    create_time DATETIME      DEFAULT GETDATE(),
+    CONSTRAINT FK_fav_user   FOREIGN KEY (user_id) REFERENCES dbo.sys_user(user_id),
+    CONSTRAINT uk_user_obj   UNIQUE (user_id, object_type, object_id)
+);
+GO
+
+-- ---------------------------------------------------------------
+-- 2.12 可达性分析保存方案表 analysis_plan（附加功能）
+--      json字段用NVARCHAR(MAX)存储勾选分类、权重配置
+-- ---------------------------------------------------------------
+CREATE TABLE dbo.analysis_plan (
+    id                 INT IDENTITY(1,1) PRIMARY KEY,
+    user_id            INT           NOT NULL,
+    plan_name          NVARCHAR(100) NOT NULL,
+    start_type         NVARCHAR(20)  NOT NULL,                -- point=任意点 / community=小区
+    start_lon          DECIMAL(12,8) NULL,
+    start_lat          DECIMAL(12,8) NULL,
+    start_community_id INT           NULL,
+    time_min           INT           NOT NULL,                -- 步行时间 5/10/15
+    facility_types     NVARCHAR(MAX) NULL,                    -- json数组，勾选设施分类
+    weights            NVARCHAR(MAX) NULL,                    -- json {priceW,accessW,evalW} 总和100
+    price_min          DECIMAL(10,2) NULL,
+    price_max          DECIMAL(10,2) NULL,
+    create_time        DATETIME      DEFAULT GETDATE(),
+    CONSTRAINT FK_plan_user FOREIGN KEY (user_id) REFERENCES dbo.sys_user(user_id)
+);
+GO
+
+-- ---------------------------------------------------------------
+-- 2.13 街道行政区表 district
+--      boundary 存储 GeoJSON 文本，前端解析绘制街道边界
+-- ---------------------------------------------------------------
+CREATE TABLE dbo.district (
+    id       INT IDENTITY(1,1) PRIMARY KEY,
+    name     NVARCHAR(50)  NOT NULL,                        -- 街道名称
+    boundary NVARCHAR(MAX) NULL                             -- 街道边界GeoJSON
+);
+GO
 -- ======================================================================
 -- 3. 空间索引（加速缓冲区/相交/距离分析）
 --    注意：SQL Server 每张表每个空间列只能建一个空间索引
@@ -3417,10 +3497,15 @@ SELECT f.facility_id,
        f.location,
        f.source,
        f.poi_id,
-       f.status
+       f.status,
+       f.avg_score,
+       f.open_time,
+       f.phone,
+       f.district_id
 FROM dbo.facility f
 JOIN dbo.facility_category c ON f.category_id = c.category_id;
 GO
+
 
 -- 小区+最近评分视图
 CREATE VIEW dbo.v_community_score AS
@@ -3431,6 +3516,11 @@ SELECT c.community_id,
        c.latitude,
        c.location,
        c.house_count,
+       c.price,
+       c.avg_score,
+       c.household,
+       c.population,
+       c.district_id,
        s.total_score,
        s.score_level,
        s.facility_count,
