@@ -67,6 +67,12 @@
     		<version>0.11.5</version>
     		<scope>runtime</scope>
 		</dependency>
+		<!-- MyBatis Plus 适配SpringBoot3+/SpringBoot4，JDK21 -->
+		<dependency>
+    		<groupId>com.baomidou</groupId>
+    		<artifactId>mybatis-plus-boot-starter</artifactId>
+    		<version>3.5.9</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

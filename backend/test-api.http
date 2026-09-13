@@ -1,0 +1,40 @@
+### 登录接口，获取token
+POST http://localhost:8080/api/user/login
+Content-Type: application/json
+
+{
+  "username":"admin",
+  "password":"123456"
+}
+
+### 提交评价接口
+POST http://localhost:8080/api/evaluation/submit
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkyOTE0NzAsImV4cCI6MTc4OTM3Nzg3MH0.D4a3SxTScSJcJF2bpUTHxnjNBRND8R96XXqqHuXl4G8
+
+{
+    "objectType": "community",
+    "objectId": 1,
+    "score": 4,
+    "content": "小区配套设施不错，生活便利"
+}
+
+
+### 评价审核接口
+POST http://localhost:8080/api/evaluation/audit
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkyOTE0NzAsImV4cCI6MTc4OTM3Nzg3MH0.D4a3SxTScSJcJF2bpUTHxnjNBRND8R96XXqqHuXl4G8
+
+{
+    "id": 2,
+    "status": 1,
+    "rejectReason": ""
+}
+
+### 查询全部评价列表
+GET http://localhost:8080/api/evaluation/list
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkyOTE0NzAsImV4cCI6MTc4OTM3Nzg3MH0.D4a3SxTScSJcJF2bpUTHxnjNBRND8R96XXqqHuXl4G8
+
+### 查询待审核评价列表 status=0
+GET http://localhost:8080/api/evaluation/list?status=0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkyOTE0NzAsImV4cCI6MTc4OTM3Nzg3MH0.D4a3SxTScSJcJF2bpUTHxnjNBRND8R96XXqqHuXl4G8
