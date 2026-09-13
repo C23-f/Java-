@@ -40,4 +40,20 @@
         DELETE FROM [evaluation] WHERE id = #{id}
     </delete>
 
+    <!-- 查询当前登录用户自己提交的评价列表 -->
+    <select id="selectMyEvaluationList" resultType="com.example.springboot.entity.Evaluation">
+        SELECT id,object_type,object_id,user_id,score,content,status,reject_reason,create_time,audit_time,auditor_id
+        FROM [evaluation]
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 评价统计，前端图表使用 -->
+    <select id="getEvaluationStats" resultType="java.util.Map">
+        SELECT
+            SUM(CASE WHEN status=0 THEN 1 ELSE 0 END) AS waitCount,
+            SUM(CASE WHEN status=1 THEN 1 ELSE 0 END) AS passCount,
+            SUM(CASE WHEN status=2 THEN 1 ELSE 0 END) AS rejectCount
+        FROM [evaluation]
+    </select>
 </mapper>

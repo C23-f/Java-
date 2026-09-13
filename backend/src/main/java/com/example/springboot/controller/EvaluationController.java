@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import java.util.Map;
+
 
 
 
@@ -93,5 +95,28 @@ public Result<List<Evaluation>> list(
         return ok ? Result.success() : Result.error("删除失败");
     }
 
+    /**
+     * 获取当前登录用户自己提交的评价列表
+     * GET /api/evaluation/myList
+     */
+    @GetMapping("/myList")
+    public Result<List<Evaluation>> myList(
+            @RequestHeader("Authorization") String token
+    ){
+        String realToken = token.replace("Bearer ","");
+        Integer userId = JwtUtil.getUserId(realToken);
+        List<Evaluation> list = evaluationService.myListEvaluation(userId);
+        return Result.success(list);
+    }
+
+    /**
+     * 评价统计接口，给前端图表用（待审核/通过/驳回数量）
+     * GET /api/evaluation/stats
+     */
+    @GetMapping("/stats")
+    public Result<?> stats(){
+        Map<String,Object> data = evaluationService.getEvaluationStats();
+        return Result.success(data);
+    }
 
 }

@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
+
 @Mapper
 public interface EvaluationMapper {
     int auditEvaluation(
@@ -20,4 +21,10 @@ public interface EvaluationMapper {
     Evaluation selectById(Integer id);
     // 删除评价
     int deleteById(Integer id);
+        // 查询当前登录用户自己提交的评价列表
+    List<Evaluation> selectMyEvaluationList(@Param("userId") Integer userId);
+
+    // 获取评价统计（图表接口，返回map）
+    java.util.Map<String,Object> getEvaluationStats();
+
 }

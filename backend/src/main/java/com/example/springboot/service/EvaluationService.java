@@ -1,6 +1,7 @@
 package com.example.springboot.service;
 import com.example.springboot.entity.Evaluation;
 import java.util.List;
+import java.util.Map;
 
 public interface EvaluationService {
     int insert(Evaluation evaluation);
@@ -13,4 +14,8 @@ public interface EvaluationService {
     // 删除评价
     boolean delete(Integer id);
 
+    // 查询当前登录用户本人的评价
+    List<Evaluation> myListEvaluation(Integer userId);
+    // 评价数量统计（前端图表）
+    Map<String,Object> getEvaluationStats();
 }

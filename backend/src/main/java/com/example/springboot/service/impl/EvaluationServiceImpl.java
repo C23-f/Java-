@@ -5,6 +5,7 @@ import com.example.springboot.service.EvaluationService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class EvaluationServiceImpl implements EvaluationService {
@@ -34,6 +35,17 @@ public class EvaluationServiceImpl implements EvaluationService {
     @Override
     public boolean delete(Integer id) {
         return evaluationMapper.deleteById(id) > 0;
+    }
+    // 新增：查询本人评价列表
+    @Override
+    public List<Evaluation> myListEvaluation(Integer userId) {
+        return evaluationMapper.selectMyEvaluationList(userId);
+    }
+
+    // 新增：评价统计图表接口
+    @Override
+    public Map<String, Object> getEvaluationStats() {
+        return evaluationMapper.getEvaluationStats();
     }
 }
 
