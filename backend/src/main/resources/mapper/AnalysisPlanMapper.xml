@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.AnalysisPlanMapper">
+
+    <update id="updatePlan">
+        UPDATE analysis_plan
+        <set>
+            <if test="planName != null">plan_name = #{planName},</if>
+            <if test="startType != null">start_type = #{startType},</if>
+            <if test="startLon != null">start_lon = #{startLon},</if>
+            <if test="startLat != null">start_lat = #{startLat},</if>
+            <if test="startCommunityId != null">start_community_id = #{startCommunityId},</if>
+            <if test="timeMin != null">time_min = #{timeMin},</if>
+            <if test="facilityTypes != null">facility_types = #{facilityTypes},</if>
+            <if test="weights != null">weights = #{weights},</if>
+            <if test="priceMin != null">price_min = #{priceMin},</if>
+            <if test="priceMax != null">price_max = #{priceMax},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

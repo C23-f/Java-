@@ -82,3 +82,48 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pb
 GET http://localhost:8080/api/favorite/isCollect?userId=1&objectType=community&objectId=2
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkzMDEyNzcsImV4cCI6MTc4OTM4NzY3N30.2h2qP_MYERpBfVdt_cUFAqTOl_OP7ObiXb10YJQPZDY
 
+### 1. 新增分析方案 POST /api/plan
+POST http://localhost:8080/api/plan
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkzMDIxOTIsImV4cCI6MTc4OTM4ODU5Mn0.1P7-Y5yoDO_foXipVRykzpt-K8O11B5TOq8ON_CNIsk
+
+{
+  "userId": 1,
+  "planName": "张店区15分钟生活圈方案01",
+  "startType": "community",
+  "startLon": 118.0256,
+  "startLat": 36.8042,
+  "startCommunityId": 1,
+  "timeMin": 15,
+  "facilityTypes": "[\"超市\",\"社区医院\"]",
+  "weights": "[0.5,0.5]",
+  "priceMin": 0,
+  "priceMax": 200
+}
+
+
+
+### 3. 查询方案列表（按用户ID）GET /api/plan/list/{userId}
+GET http://localhost:8080/api/plan/list/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkzMDQ0MzYsImV4cCI6MTc4OTM5MDgzNn0.jwJIeE2kLpO1OvKQTtuVybI6e8UFw0LvOvPgZZCcPZ8
+
+### 4. 根据ID查询方案详情 GET /api/plan/{id}
+GET http://localhost:8080/api/plan/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkzMDQ0MzYsImV4cCI6MTc4OTM5MDgzNn0.jwJIeE2kLpO1OvKQTtuVybI6e8UFw0LvOvPgZZCcPZ8
+
+
+### 5. 修改方案 PUT /api/plan/{id}
+PUT http://localhost:8080/api/plan/1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkzMDQ0MzYsImV4cCI6MTc4OTM5MDgzNn0.jwJIeE2kLpO1OvKQTtuVybI6e8UFw0LvOvPgZZCcPZ8
+
+{
+  "planName": "修改后的方案名称",
+  "timeMin":15,
+  "facilityTypes":"[\"小学\",\"药店\"]"
+}
+
+### 6. 删除方案 DELETE /api/plan/{id}
+DELETE http://localhost:8080/api/plan/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkzMDQ0MzYsImV4cCI6MTc4OTM5MDgzNn0.jwJIeE2kLpO1OvKQTtuVybI6e8UFw0LvOvPgZZCcPZ8
+
