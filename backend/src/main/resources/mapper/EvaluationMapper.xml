@@ -28,4 +28,16 @@
     ORDER BY create_time DESC
 </select>
 
+    <!-- 根据ID查询评价详情 -->
+    <select id="selectById" resultType="com.example.springboot.entity.Evaluation">
+        SELECT id,object_type,object_id,user_id,score,content,status,reject_reason,create_time,audit_time,auditor_id
+        FROM [evaluation]
+        WHERE id = #{id}
+    </select>
+
+    <!-- 删除评价 -->
+    <delete id="deleteById">
+        DELETE FROM [evaluation] WHERE id = #{id}
+    </delete>
+
 </mapper>

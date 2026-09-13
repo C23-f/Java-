@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
 
 
 
@@ -69,6 +72,26 @@ public Result<List<Evaluation>> list(
     List<Evaluation> list = evaluationService.listEvaluation(status);
     return Result.success(list);
 }
+
+    /**
+     * 根据ID查询评价详情
+     * GET /api/evaluation/{id}
+     */
+    @GetMapping("/{id}")
+    public Result<Evaluation> getById(@PathVariable Integer id){
+        Evaluation evaluation = evaluationService.getById(id);
+        return Result.success(evaluation);
+    }
+
+    /**
+     * 删除评价（管理员）
+     * DELETE /api/evaluation/{id}
+     */
+    @DeleteMapping("/{id}")
+    public Result<?> delete(@PathVariable Integer id){
+        boolean ok = evaluationService.delete(id);
+        return ok ? Result.success() : Result.error("删除失败");
+    }
 
 
 }

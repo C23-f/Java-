@@ -16,4 +16,8 @@ public interface EvaluationMapper {
     
     // 新增这一行
     List<Evaluation> selectEvaluationList(@Param("status") Integer status);
+    // 根据id查询评价详情
+    Evaluation selectById(Integer id);
+    // 删除评价
+    int deleteById(Integer id);
 }

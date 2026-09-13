@@ -21,10 +21,19 @@ public class EvaluationServiceImpl implements EvaluationService {
         return evaluationMapper.auditEvaluation(id, status, rejectReason, auditorId) > 0;
     }
 
-    // =========在这里新增下面这个方法=========
     @Override
     public List<Evaluation> listEvaluation(Integer status) {
         return evaluationMapper.selectEvaluationList(status);
+    }
+
+    @Override
+    public Evaluation getById(Integer id) {
+        return evaluationMapper.selectById(id);
+    }
+
+    @Override
+    public boolean delete(Integer id) {
+        return evaluationMapper.deleteById(id) > 0;
     }
 }
 

@@ -38,3 +38,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pb
 ### 查询待审核评价列表 status=0
 GET http://localhost:8080/api/evaluation/list?status=0
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkyOTE0NzAsImV4cCI6MTc4OTM3Nzg3MH0.D4a3SxTScSJcJF2bpUTHxnjNBRND8R96XXqqHuXl4G8
+
+### 根据ID查询评价详情
+GET http://localhost:8080/api/evaluation/4
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkyOTcwNjEsImV4cCI6MTc4OTM4MzQ2MX0.SVw1jC7_5dVy0BMCqUL4U0O6xRv9A68cVVXI6F9OJnM
+
+### 删除评价
+DELETE http://localhost:8080/api/evaluation/4
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVDb2RlIjoiYWRtaW4iLCJpYXQiOjE3ODkyOTcwNjEsImV4cCI6MTc4OTM4MzQ2MX0.SVw1jC7_5dVy0BMCqUL4U0O6xRv9A68cVVXI6F9OJnM
