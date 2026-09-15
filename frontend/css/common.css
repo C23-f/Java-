@@ -1,0 +1,160 @@
+/* ============================================================
+   common.css —— 全系统公共样式（玻璃拟态风格）
+   设计规范（需求书第二章）：
+   - 面板/弹窗/卡片：半透明白色 75%~85% 透明度 + backdrop-filter 模糊
+   - 1px 白/蓝绿描边、柔和外阴影、圆角 12~20px
+   - 主色：蓝绿渐变 #2ec4b6 → #1676d6；文字高对比 #1f2d3d
+   ============================================================ */
+ 
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; }
+body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    color: #1f2d3d;
+    overflow: hidden;
+    background: #eef3f7;
+}
+a { text-decoration: none; color: inherit; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(100,120,140,.35); border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+ 
+/* ---------- 玻璃拟态基础类 ---------- */
+.glass {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(31, 45, 61, 0.12);
+}
+.glass-dark {
+    background: rgba(30, 45, 60, 0.72);
+    color: #fff;
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.25);
+}
+ 
+/* ---------- 顶部导航栏 ---------- */
+.topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 56px;
+    display: flex; align-items: center; padding: 0 18px;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(46,196,182,.25);
+    z-index: 1000; gap: 14px;
+}
+.topbar .brand {
+    font-size: 17px; font-weight: 700;
+    background: linear-gradient(90deg,#1676d6,#2ec4b6);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    white-space: nowrap;
+}
+.topbar .menu { display: flex; gap: 4px; margin-left: 8px; }
+.topbar .menu a {
+    padding: 7px 14px; border-radius: 10px; font-size: 14px; color: #46566a;
+    transition: all .2s;
+}
+.topbar .menu a:hover, .topbar .menu a.active {
+    background: linear-gradient(90deg, rgba(46,196,182,.18), rgba(22,118,214,.18));
+    color: #0e6f9f;
+}
+.topbar .search-box {
+    flex: 1; max-width: 320px; margin-left: auto;
+    display: flex; background: rgba(255,255,255,.7);
+    border: 1px solid rgba(46,196,182,.35); border-radius: 20px;
+    padding: 4px 6px 4px 14px; align-items: center;
+}
+.topbar .search-box input {
+    flex: 1; border: none; outline: none; background: transparent; font-size: 13px;
+}
+.topbar .user-area { display: flex; align-items: center; gap: 10px; font-size: 13px; color:#46566a; }
+.avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg,#2ec4b6,#1676d6);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600;
+}
+ 
+/* ---------- 按钮 ---------- */
+.btn {
+    display: inline-block; border: none; cursor: pointer;
+    padding: 9px 18px; border-radius: 10px; font-size: 14px;
+    background: linear-gradient(90deg,#1676d6,#2ec4b6); color: #fff;
+    transition: all .2s;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22,118,214,.35); }
+.btn-ghost {
+    background: rgba(255,255,255,.7); color: #1676d6;
+    border: 1px solid rgba(22,118,214,.4);
+}
+.btn-danger { background: linear-gradient(90deg,#e74c5e,#ff7a59); }
+.btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 8px; }
+ 
+/* ---------- 表单 ---------- */
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; color: #46566a; margin-bottom: 6px; }
+.field input, .field select, .field textarea {
+    width: 100%; padding: 9px 12px; border: 1px solid #d3dde6;
+    border-radius: 10px; font-size: 14px; background: rgba(255,255,255,.85); outline: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+    border-color: #2ec4b6; box-shadow: 0 0 0 3px rgba(46,196,182,.15);
+}
+ 
+/* ---------- 弹窗（modal） ---------- */
+.modal-mask {
+    position: fixed; inset: 0; background: rgba(20,30,45,.35);
+    backdrop-filter: blur(3px); z-index: 5000;
+    display: none; align-items: center; justify-content: center;
+}
+.modal-mask.show { display: flex; }
+.modal {
+    width: 520px; max-width: 92vw; max-height: 84vh; overflow: auto;
+    padding: 24px; animation: pop .25s ease;
+}
+@keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal h3 { font-size: 18px; margin-bottom: 16px; color: #1f2d3d; }
+.modal .close {
+    position: absolute; top: 14px; right: 18px; cursor: pointer;
+    font-size: 20px; color: #8aa;
+}
+ 
+/* ---------- 表格 ---------- */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th, .tbl td { padding: 9px 10px; border-bottom: 1px solid rgba(120,140,160,.18); text-align: left; }
+.tbl th { color: #46566a; font-weight: 600; background: rgba(46,196,182,.08); }
+.tbl tr:hover td { background: rgba(22,118,214,.05); }
+ 
+/* ---------- 标签页 ---------- */
+.tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.tabs .tab {
+    padding: 7px 16px; border-radius: 10px; cursor: pointer; font-size: 13px;
+    background: rgba(255,255,255,.6); color: #46566a; border: 1px solid transparent;
+}
+.tabs .tab.active {
+    background: linear-gradient(90deg,#1676d6,#2ec4b6); color: #fff;
+}
+ 
+/* ---------- 徽标（状态） ---------- */
+.badge { padding: 2px 10px; border-radius: 10px; font-size: 12px; }
+.badge-ok { background: rgba(82,196,26,.15); color: #389e0d; }
+.badge-wait { background: rgba(250,173,20,.18); color: #d48806; }
+.badge-no  { background: rgba(231,76,94,.15); color: #cf1322; }
+ 
+/* ---------- 分页 ---------- */
+.pager { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 12px; font-size: 13px; }
+ 
+/* ---------- 加载遮罩 ---------- */
+.loading {
+    position: fixed; inset: 0; display: none; z-index: 8000;
+    align-items: center; justify-content: center; background: rgba(255,255,255,.4);
+}
+.loading.show { display: flex; }
+.loading .spin {
+    width: 38px; height: 38px; border: 4px solid rgba(46,196,182,.25);
+    border-top-color: #2ec4b6; border-radius: 50%; animation: rot 1s linear infinite;
+}
+@keyframes rot { to { transform: rotate(360deg); } }

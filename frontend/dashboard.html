@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>统计大屏 · 张店区15分钟生活圈</title>
+<link rel="stylesheet" href="css/common.css">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+    body {
+        overflow: auto;
+        background: radial-gradient(ellipse at top, #0d2b4e 0%, #071a30 60%, #04121f 100%);
+        color: #e6f1ff;
+    }
+    .screen-wrap { padding: 76px 24px 24px; max-width: 1500px; margin: 0 auto; }
+    .screen-title { text-align:center; margin-bottom:20px; }
+    .screen-title h1 {
+        font-size:28px; letter-spacing:3px;
+        background:linear-gradient(90deg,#7ee8fa,#2ec4b6,#1676d6);
+        -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .screen-title p { font-size:13px; color:#7fa8cc; margin-top:6px; }
+ 
+    .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+    .kpi-card {
+        background: rgba(255,255,255,.06);
+        border:1px solid rgba(126,232,250,.2);
+        border-radius:16px; padding:18px; text-align:center;
+        backdrop-filter: blur(10px);
+    }
+    .kpi-card .v { font-size:30px; font-weight:700; color:#2ec4b6; }
+    .kpi-card .l { font-size:13px; color:#9cc3e6; margin-top:4px; }
+ 
+    .chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .chart-box {
+        background: rgba(255,255,255,.05);
+        border:1px solid rgba(126,232,250,.18);
+        border-radius:16px; padding:16px;
+    }
+    .chart-box h4 { font-size:14px; color:#cfe8ff; margin-bottom:8px; font-weight:600; }
+    .chart { height:300px; }
+    .topbar { background: rgba(7,26,48,.85); }
+    .topbar .brand { color:#7ee8fa; -webkit-text-fill-color:#7ee8fa; }
+    .topbar .menu a { color:#9cc3e6; }
+    .topbar .menu a.active, .topbar .menu a:hover { color:#fff; background:rgba(46,196,182,.2); }
+    .topbar .user-area { color:#9cc3e6; }
+</style>
+</head>
+<body>
+<div class="topbar">
+    <div class="brand">🏙 张店区15分钟生活圈</div>
+    <div class="menu">
+        <a href="main.html">地图主页</a>
+        <a href="dashboard.html" class="active">图表可视化</a>
+        <a href="admin.html" id="adminMenu" style="display:none">数据管理</a>
+    </div>
+    <div class="user-area">
+        <div class="avatar" id="avatar">U</div>
+        <span id="userName"></span>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">退出</button>
+    </div>
+</div>
+ 
+<div class="screen-wrap">
+    <div class="screen-title">
+        <h1>张店区15分钟生活圈便民设施统计大屏</h1>
+        <p>数据来源：后端 /api/stats/* 实时聚合 · 淄博市张店区</p>
+    </div>
+ 
+    <div class="kpi-row">
+        <div class="kpi-card"><div class="v" id="kFac">--</div><div class="l">便民设施总数</div></div>
+        <div class="kpi-card"><div class="v" id="kCom">--</div><div class="l">居住小区总数</div></div>
+        <div class="kpi-card"><div class="v" id="kPrice">--</div><div class="l">小区平均房价(元/㎡)</div></div>
+        <div class="kpi-card"><div class="v" id="kScore">--</div><div class="l">小区平均评分</div></div>
+    </div>
+ 
+    <div class="chart-grid">
+        <div class="chart-box"><h4>▍各类便民设施数量分布</h4><div id="c1" class="chart"></div></div>
+        <div class="chart-box"><h4>▍设施类别占比（环形）</h4><div id="c2" class="chart"></div></div>
+        <div class="chart-box"><h4>▍小区可达性评分等级分布</h4><div id="c3" class="chart"></div></div>
+        <div class="chart-box"><h4>▍小区房价区间分布</h4><div id="c4" class="chart"></div></div>
+        <div class="chart-box" style="grid-column:1 / -1"><h4>▍可达性评分 Top8 便民设施</h4><div id="c5" class="chart" style="height:280px"></div></div>
+    </div>
+</div>
+ 
+<script src="js/config.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

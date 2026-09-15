@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据管理 · 张店区15分钟生活圈</title>
+<link rel="stylesheet" href="css/common.css">
+<style>
+    body { overflow: auto; background: #eef3f7; }
+    .admin-wrap { padding: 76px 24px 24px; max-width: 1400px; margin: 0 auto; }
+    .filter-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+    .filter-bar input, .filter-bar select {
+        padding:8px 12px; border:1px solid #d3dde6; border-radius:10px; font-size:13px; outline:none;
+    }
+    .panel { padding:20px; }
+    .panel h3 { font-size:16px; margin-bottom:14px; color:#0e6f9f; }
+    .toolbar { display:flex; gap:8px; margin-bottom:12px; justify-content:space-between; }
+</style>
+</head>
+<body>
+<div class="topbar">
+    <div class="brand">🏙 张店区15分钟生活圈</div>
+    <div class="menu">
+        <a href="main.html">地图主页</a>
+        <a href="dashboard.html">图表可视化</a>
+        <a href="admin.html" class="active">数据管理</a>
+    </div>
+    <div class="user-area">
+        <div class="avatar" id="avatar">U</div>
+        <span id="userName"></span>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">退出</button>
+    </div>
+</div>
+ 
+<div class="admin-wrap">
+    <div class="tabs" id="tabs">
+        <div class="tab active" data-t="community">小区管理</div>
+        <div class="tab" data-t="facility">设施管理</div>
+        <div class="tab" data-t="evaluation">评价审核</div>
+        <div class="tab" data-t="category">设施分类</div>
+        <div class="tab" data-t="district">街道管理</div>
+        <div class="tab" data-t="favorite">收藏管理</div>
+        <div class="tab" data-t="user" id="tabUser">用户管理</div>
+        <div class="tab" data-t="log" id="tabLog">操作日志</div>
+    </div>
+ 
+    <div class="panel glass">
+        <!-- 筛选条 -->
+        <div class="filter-bar" id="filterBar"></div>
+        <div class="toolbar">
+            <div id="toolLeft"></div>
+            <div id="toolRight"></div>
+        </div>
+        <table class="tbl">
+            <thead id="thead"></thead>
+            <tbody id="tbody"><tr><td colspan="10" class="empty">加载中...</td></tr></tbody>
+        </table>
+        <div class="pager">
+            <button class="btn btn-ghost btn-sm" onclick="changePage(-1)">上一页</button>
+            <span id="pageInfo">第 1 页</span>
+            <button class="btn btn-ghost btn-sm" onclick="changePage(1)">下一页</button>
+        </div>
+    </div>
+</div>
+ 
+<!-- 编辑弹窗 -->
+<div class="modal-mask" id="modalMask">
+    <div class="modal glass" style="position:relative">
+        <span class="close" onclick="closeModal()">×</span>
+        <div id="modalBody"></div>
+    </div>
+</div>
+<div class="loading" id="loading"><div class="spin"></div></div>
+ 
+<script src="js/config.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
