@@ -13,8 +13,8 @@ const API_BASE = 'http://localhost:8080';
 // 【需要你自己填】高德地图JS API 2.0 的 Key。
 // 申请地址：https://console.amap.com/dev/key/app  → 创建应用 → 添加 Key → 服务平台选「Web端(JS API)」
 // 申请后还需在同一页面开启「安全密钥」，把值填到下方 SECURITY_CODE。
-const AMAP_KEY = '你的高德Key';
-const AMAP_SECURITY_CODE = '你的安全密钥';
+const AMAP_KEY = '698dfb27413eb152a809a7a13009488f';
+const AMAP_SECURITY_CODE = 'd5bf0f930e7b55dadcd35863d958c5f3';
  
 // 张店区地图初始中心 [经度, 纬度]（GCJ-02，与高德一致，无需转换）
 const MAP_CENTER = [118.0568, 36.8139];
