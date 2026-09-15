@@ -1,0 +1,129 @@
+* [33mfd5a2fa[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m 删除旧页面
+* [33m90b1f5b[m 前端主界面修改
+* [33mfa11be2[m[33m ([m[1;31morigin/main[m[33m)[m 前端代码完善
+* [33ma7a3012[m docs：后端缺口九项功能补全
+* [33mf16eb6e[m T33: 后端九项功能补全，mvn compile通过
+* [33m34dbf3f[m docs：完成分析方案CRUD接口开发与动态更新优化
+* [33me51d0f1[m T32: 完成AnalysisPlan分析方案CRUD，优化update为MyBatis动态SQL
+* [33m59b2d4f[m docs：开发收藏模块后端接口
+* [33m0619907[m T31: 新增收藏模块全套接口，包含新增、删除、列表查询、是否收藏判断接口，完成全流程调试
+* [33m79ee348[m docs：后端空间缓冲区、评价模块接口开发与完善
+* [33m8216054[m T30：新增任意点位缓冲区分析接口；完善评价模块（我的评价列表、评价统计图表、评价审核），补全分层代码与接口文档，本地验证全部接口
+*   [33m387adab[m T30: 新增评价模块接口：按ID查询评价详情、删除评价
+[32m|[m[33m\[m  
+[32m|[m * [33m0fb67aa[m docs：新增评价列表查询接口
+* [33m|[m [33mee75330[m T30: 新增评价模块接口：按ID查询评价详情、删除评价
+[33m|[m[33m/[m  
+* [33m3ce4372[m T29: 新增评价列表查询接口，支持按审核状态筛选评价，完成接口测试
+* [33ma9bf92e[m docs：日志更新
+* [33m7841ed2[m docs：新增5张业务表 + community/facility扩展字段
+* [33me10baa3[m docs：更新后端接口目录文档
+* [33m1a9f26e[m Add point buffer analysis interface and validation
+* [33m65db6bc[m 登录、注册页代码细化
+* [33me003ea0[m T26 小区与设施增删改查接口开发及权限安全修复
+* [33m2680fe5[m 增删改查接口以及登录者权限
+* [33m43954e5[m docs：后端空间分析接口扩展与基础功能联调
+* [33m92db876[m 新增任意经纬度点位缓冲区设施分类统计接口；修复编译异常；放行空间模块接口鉴权；补充参数范围校验
+* [33m399bbe8[m Update 飞书开发日志 with recent changes
+* [33m657e4c3[m 前端GIS模块完善
+* [33mba2b713[m Add files via upload
+* [33m2187d91[m 添加注册功能
+* [33me36fd6e[m Update WebConfig to exclude register endpoint from interceptor
+* [33m63c0fb9[m Add user registration endpoint to UserController
+* [33m32d888a[m Implement user registration method in UserServiceImpl
+* [33mf696b5d[m Add register method to UserService interface
+* [33m0ba20d8[m docs：注册功能
+* [33m4d9ca62[m docs：接口说明
+* [33m5740e33[m Add files via upload
+* [33m1543c2d[m Add files via upload
+* [33m2682239[m Add files via upload
+* [33m6c74d40[m Add files via upload
+* [33m30b20ba[m Add files via upload
+* [33mda762e7[m Add files via upload
+* [33m4873188[m Add files via upload
+* [33m1997127[m docs：新添异常处理和用户登录接口
+* [33mea2b4fa[m docs：简化密码
+* [33mdd10b0b[m docs:修改密码
+* [33mac4b120[m Delete init_db.sql
+* [33mfc321cd[m docs：修改密码
+* [33m7f180af[m docs：`数据库：替换GeoJSON真实数据 + 修复存储过程返回字段`，Extended description 留空，直接提交 main。
+* [33mff3f7c8[m docs：数据生成器
+* [33m63376de[m docs：更新数据
+* [33m4354af9[m Delete init_db.sql
+* [33mb324463[m docs：后端空间分析模块开发
+* [33ma977e54[m docs：修改日志
+* [33mf3850da[m feat: 空间分析模块完整后端代码实现，对接sp_community_15min_stats存储过程；当前存储过程返回缺少community_id、buffer_radius字段，待数据库脚本补充输出列
+* [33m9511d98[m docs:T19 完成设施分类CRUD开发日志记录
+* [33m58c699c[m feat:完成设施分类facility_category全套CRUD接口开发
+* [33m53e584a[m Add files via upload
+* [33mcadf094[m docs：OSM 步行路网提取与三任务整合
+* [33m6b94583[m Add files via upload
+* [33ma31d9c3[m docs：完成任务 2 GeoPandas 清洗
+* [33mfbbb446[m Add files via upload
+* [33m72609c5[m dorcs：新增住宅小区 POI 分类采集与清洗
+* [33m6af21ac[m docs: 更新飞书开发日志，添加后端接口搭建记录
+* [33mafca2b0[m 后端空间查询接口四层骨架搭建完成，数据库连接配置已添加，待联调验证
+* [33m7cc159d[m Update 数据库设计说明.md
+* [33mcf4e17d[m docs：爬虫POI数据入库与数据库全面校验
+* [33m2868902[m docs:添加具体数据
+* [33m819ef42[m dorcs：Fix POI classification and update operator name
+* [33md35e19c[m docs：修复 POI 爬虫分类过滤与清洗输出
+* [33mfdf800d[m Add files via upload
+* [33meb079db[m 后台登录页面开发与后台框架确认
+* [33mc11bb68[m Delete 任务 1.py
+* [33m07bbcc2[m Delete poi_银行.csv
+* [33m1ce663f[m Delete poi_学校.csv
+* [33mc6b36a2[m Delete poi_商超.csv
+* [33me7282d8[m Delete poi_医院.csv
+* [33mb2f791e[m Delete poi_公园.csv
+* [33mfcea624[m Delete 删除poi_公交站.csv
+* [33m313b422[m Add files via upload
+* [33m179ab7f[m Update README.md
+* [33md6f6ebe[m 更新飞书开发日志，记录项目进展
+* [33m95d284f[m 完成前端GIS模块初始化
+* [33m26c4480[m Add files via upload
+* [33mc0baba9[m Add files via upload
+* [33m0aed90b[m Delete backend/service directory
+* [33mb34ca22[m Delete backend/mapper directory
+* [33m5a41a89[m Delete backend/entity directory
+* [33m35ae671[m Delete backend/controller directory
+* [33m1203127[m Delete backend/common directory
+* [33mdff89a0[m database链接
+* [33m004ffe5[m Delete backend/src/main/java/com/example/springboot/common
+* [33ma7c055e[m Create common
+* [33m2672f94[m 9
+* [33mce1f6df[m 设施分类列表查询接口开发
+* [33mbadc0ef[m docs：原始数据采集与任务一清洗开发
+* [33m8318800[m Add files via upload
+* [33mde5359b[m Add files via upload
+* [33mb986534[m docs：修改readme
+* [33m528aa65[m docs：feat: 搭建后端空间分析模块基础工程，完成Spring Boot 4.0.8环境配置与启动验证
+* [33ma28ce90[m chore: 添加.gitignore规则，移除编译缓存目录
+* [33m81768e8[m feat: 初始化后端空间分析模块，完成Spring Boot 4.0.8基础工程搭建与启动验证
+* [33mbdbf4e8[m docs:增加2026‑09‑03仓库搭建开发日志
+* [33m98f869e[m chore:增加.gitkeep占位，保留backend、frontend目录
+* [33mb676c2b[m docs:修改位置
+* [33m5067605[m docs:创建Spring Boot后端项目并配置SQL Server]
+* [33m81b92a7[m Add files via upload
+* [33m7e16b27[m docs:完成数据库设计与init_db.sql初始化脚本
+* [33mabe2c8a[m Add files via upload
+* [33m82843a6[m docs: 记录T3完善README增加跳转链接任务
+* [33m7a8f609[m docs: 修复README内部跳转链接
+* [33me12c5a1[m docs: 修复README内部跳转链接
+* [33mb65c10e[m docs: 修复README内部跳转链接
+* [33m557e66c[m docs: 完善项目README仓库说明
+* [33mb93ff80[m docs: 记录T2新增日志规范文档任务
+* [33mea5f928[m Delete 日志/111.txt
+* [33m02999e0[m docs: 新增开发日志填写规范文档
+* [33m8a81c90[m chore: 初始化T1项目开发日志文档
+* [33m9908a6b[m chore: 初始化T1项目开发日志文档
+* [33m6865732[m Create 飞书开发日志.md
+* [33ma42d543[m Delete 日志/feishu-log
+* [33m5f4b096[m Create feishu-log
+* [33meb12e2e[m Add files via upload
+* [33mef7b57c[m Delete 日志
+* [33m2c9f828[m Create 日志
+* [33m4b39be9[m Update README title and add section for webgis internship
+* [33m486a110[m Update README with new content
+* [33mdb779ad[m Update README.md
+* [33mfffed66[m Initial commit
