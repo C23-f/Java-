@@ -71,16 +71,23 @@ async function api(url, options = {}) {
     if (token) headers['Authorization'] = 'Bearer ' + token;
  
     let resp;
+    // 20 秒超时：后端未启动/网络异常时快速失败，避免页面一直卡在加载；
+    // 正常的大列表请求（1352 条设施）在本地环境通常 1 秒内完成，不会被误杀
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20000);
     try {
         resp = await fetch(fullUrl, {
             method,
             headers,
-            body: body ? JSON.stringify(body) : null
+            body: body ? JSON.stringify(body) : null,
+            signal: controller.signal
         });
     } catch (e) {
-        toast('网络异常，无法连接后端服务(' + API_BASE + ')');
+        clearTimeout(timer);
+        toast('后端连接超时或异常(' + API_BASE + ')，请确认后端服务已启动');
         throw e;
     }
+    clearTimeout(timer);
  
     // 401 未登录/登录过期：跳回登录页
     if (resp.status === 401) {

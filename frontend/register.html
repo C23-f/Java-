@@ -1,147 +1,111 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>账号注册</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Microsoft Yahei", sans-serif;
-        }
-        body {
-            padding: 30px;
-        }
-        /* 左上角标题区域 */
-        .page-header {
-            margin-bottom: 40px;
-        }
-        .system-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #303133;
-        }
-        .line {
-            width: 320px;
-            height: 2px;
-            background-color: #409eff;
-            margin-top:8px;
-        }
-        /* 注册盒子，页面正中间 */
-        .register-wrap {
-            width: 420px;
-            margin: 0 auto;
-        }
-        .register-box{
-            padding:30px;
-            border:1px solid #e4e7ed;
-            border-radius:8px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .register-box h2{
-            text-align:center;
-            margin-bottom:25px;
-            color:#303133;
-        }
-        .item{
-            margin-bottom:18px;
-        }
-        .item label{
-            display:block;
-            margin-bottom:6px;
-            color:#606266;
-        }
-        .item input{
-            width:100%;
-            height:40px;
-            padding:0 12px;
-            border:1px solid #dcdfe6;
-            border-radius:4px;
-            font-size:14px;
-        }
-        .submit-btn{
-            width:100%;
-            height:42px;
-            background:#409eff;
-            color:white;
-            border:none;
-            border-radius:4px;
-            font-size:15px;
-            cursor:pointer;
-        }
-        .back-login{
-            text-align:center;
-            margin-top:20px;
-        }
-        .back-login a{
-            color:#409eff;
-            text-decoration:none;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>注册 · 15分钟生活圈便民设施评价与管理系统</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+        width:100vw; height:100vh;
+        background: url("pic.png") center/cover no-repeat;
+        font-family: "Microsoft YaHei", sans-serif;
+        overflow: hidden;
+    }
+    /* 顶部系统标题（与登录页一致） */
+    .sys-title {
+        position:absolute; top:8%; left:50%; transform:translateX(-50%);
+        text-align:center; color:#1f2d3d; z-index:9;
+        animation: fade 1s ease;
+        text-shadow:0 2px 18px rgba(255,255,255,.85);
+    }
+    .sys-title h1 {
+        font-size:48px; letter-spacing:6px; font-weight:800;
+        background:linear-gradient(90deg,#0e6f9f,#1676d6,#2ec4b6);
+        -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .sys-title p { font-size:16px; color:#33475b; margin-top:12px; letter-spacing:1px; }
+    @keyframes fade { from{opacity:0; transform:translateX(-50%) translateY(16px);} to{opacity:1;} }
+
+    /* 注册卡片：玻璃拟态，与登录页同风格 */
+    .register-card {
+        position:absolute; top:50%; right:9%; transform:translateY(-50%);
+        width:412px; padding:42px 38px;
+        background: rgba(255,255,255,0.78);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border:1px solid rgba(255,255,255,0.65);
+        border-radius:20px;
+        box-shadow:0 12px 40px rgba(20,50,80,.18);
+        animation: cardIn 1s ease;
+    }
+    @keyframes cardIn { from{opacity:0; transform:translateY(-42%);} to{opacity:1; transform:translateY(-50%);} }
+    .register-card h2 { text-align:center; color:#1f2d3d; margin-bottom:28px; font-weight:700; font-size:22px; }
+    .item { margin-bottom:18px; }
+    .item label { display:block; font-size:13px; color:#46566a; margin-bottom:7px; }
+    .item input {
+        width:100%; padding:13px 15px; border:1px solid rgba(120,160,190,.4);
+        border-radius:12px; font-size:15px; background:rgba(255,255,255,.75); outline:none;
+    }
+    .item input:focus { border-color:#2ec4b6; box-shadow:0 0 0 3px rgba(46,196,182,.18); }
+    .submit-btn {
+        width:100%; padding:15px; border:none; border-radius:12px; cursor:pointer;
+        background:linear-gradient(90deg,#1676d6,#2ec4b6); color:#fff; font-size:17px;
+        letter-spacing:8px; font-weight:600; transition:.25s;
+    }
+    .submit-btn:hover { box-shadow:0 8px 20px rgba(22,118,214,.4); transform:translateY(-1px); }
+    .back-login { text-align:center; margin-top:18px; font-size:13px; color:#46566a; }
+    .back-login a { color:#1676d6; text-decoration:none; }
+</style>
 </head>
 <body>
-    <!-- 左上角标题+横线 -->
-    <div class="page-header">
-        <div class="system-title">便民设施评价与管理系统账号注册</div>
-        <div class="line"></div>
+    <div class="sys-title">
+        <h1>张店区15分钟生活圈</h1>
+        <p>便民设施评价与管理系统 · 账号注册</p>
     </div>
 
-    <!-- 注册表单 页面正中间 -->
-    <div class="register-wrap">
-        <div class="register-box">
-            <h2>账号注册</h2>
-            <div class="item">
-                <label>用户名</label>
-                <input id="username" type="text" placeholder="请输入用户名">
-            </div>
-            <div class="item">
-                <label>密码</label>
-                <input id="pwd" type="password" placeholder="请输入密码">
-            </div>
-            <div class="item">
-                <label>确认密码</label>
-                <input id="repwd" type="password" placeholder="请再次输入密码">
-            </div>
-            <button class="submit-btn" onclick="doRegister()">提交注册</button>
-            <div class="back-login">
-                已有账号？<a href="login.html">返回登录</a>
-            </div>
+    <div class="register-card">
+        <h2>用户注册</h2>
+        <div class="item">
+            <label>用户名</label>
+            <input id="username" type="text" placeholder="请输入用户名">
         </div>
+        <div class="item">
+            <label>密码</label>
+            <input id="pwd" type="password" placeholder="请输入密码">
+        </div>
+        <div class="item">
+            <label>确认密码</label>
+            <input id="repwd" type="password" placeholder="请再次输入密码">
+        </div>
+        <button class="submit-btn" onclick="doRegister()">注 册</button>
+        <div class="back-login">已有账号？<a href="login.html">返回登录</a> · 登录注册已合并至登录页</div>
     </div>
 
+<script src="js/config.js"></script>
 <script>
-function doRegister(){
-    // 获取输入框内容
-    let username = document.getElementById('username').value.trim();
-    let pwd = document.getElementById('pwd').value.trim();
-    let repwd = document.getElementById('repwd').value.trim();
+// 注册：调用后端 POST /api/user/register，成功后跳转登录页
+async function doRegister() {
+    const username = document.getElementById('username').value.trim();
+    const pwd = document.getElementById('pwd').value.trim();
+    const repwd = document.getElementById('repwd').value.trim();
 
-    // 判断不能为空
-    if(username === ''){
-        alert('请输入用户名');
-        return;
-    }
-    if(pwd === ''){
-        alert('请输入密码');
-        return;
-    }
-    if(repwd === ''){
-        alert('请输入确认密码');
-        return;
-    }
-    // 判断两次密码是否一致
-    if(pwd !== repwd){
-        alert('两次输入的密码不一致，请重新输入！');
-        return;
-    }
+    if (!username) { toast('请输入用户名'); return; }
+    if (!pwd) { toast('请输入密码'); return; }
+    if (!repwd) { toast('请输入确认密码'); return; }
+    if (pwd !== repwd) { toast('两次输入的密码不一致，请重新输入'); return; }
 
-    // 全部校验通过
-    alert('前端校验通过！（暂无后端保存账号功能）');
-    // 校验成功后可以跳回登录页
-    window.location.href = "main.html";
+    try {
+        const data = await api('/api/user/register', {
+            method: 'POST',
+            body: { username, password: pwd }
+        });
+        toast('注册成功，请登录');
+        setTimeout(() => { location.href = 'login.html'; }, 800);
+    } catch (e) { /* api 已 toast 错误 */ }
 }
+// 回车注册
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
 </script>
-
 </body>
 </html>

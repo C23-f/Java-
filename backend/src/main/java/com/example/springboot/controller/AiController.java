@@ -2,8 +2,11 @@ package com.example.springboot.controller;
 
 import com.example.springboot.common.BizException;
 import com.example.springboot.common.Result;
+import com.example.springboot.entity.Community;
 import com.example.springboot.entity.Facility;
 import com.example.springboot.mapper.FacilityMapper;
+import com.example.springboot.service.CommunitySpatialService;
+import com.example.springboot.service.FacilitySpatialService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +17,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,6 +52,12 @@ public class AiController {
 
     @Resource
     private FacilityMapper facilityMapper;
+
+    @Resource
+    private CommunitySpatialService communitySpatialService;
+
+    @Resource
+    private FacilitySpatialService facilitySpatialService;
 
     /** AI 中转：POST /api/ai/chat  body: {"prompt": "..."} */
     @PostMapping("/chat")
@@ -120,6 +131,106 @@ public class AiController {
         data.put("score100", score100);
         data.put("level", level);
         data.put("advice", advice);
+        return Result.success(data);
+    }
+
+    /**
+     * AI 综合分析：POST /api/ai/analysis
+     * 入参: lng, lat, radius(米), categories(可选分类代码数组)
+     * 返回: facilityCount 可达设施数 / communityCount 周边小区数
+     *       avgPrice 周边小区平均房价 / score100 百分制综合评分(规则版)
+     *       categoryStats 分类统计 / advice 智能建议 / aiEnabled 是否启用真实大模型
+     */
+    @PostMapping("/analysis")
+    public Result<Map<String, Object>> analysis(@RequestBody Map<String, Object> body) {
+        Double lng = Double.valueOf(String.valueOf(body.get("lng")));
+        Double lat = Double.valueOf(String.valueOf(body.get("lat")));
+        Integer radius = Integer.valueOf(String.valueOf(body.getOrDefault("radius", 1000)));
+        @SuppressWarnings("unchecked")
+        List<String> cats = (List<String>) body.getOrDefault("categories", new ArrayList<>());
+
+        // 1. 缓冲区设施（可选按分类过滤）
+        List<Facility> facilities = facilitySpatialService.listFacilityByPointBuffer(lng, lat, radius);
+        if (cats != null && !cats.isEmpty()) {
+            facilities = facilities.stream()
+                    .filter(f -> cats.contains(f.getCategoryCode()))
+                    .toList();
+        }
+
+        // 2. 周边小区
+        List<Community> communities = communitySpatialService.listCommunityByPointBuffer(lng, lat, radius);
+
+        // 3. 分类统计
+        Map<String, Integer> categoryStats = new HashMap<>();
+        facilities.forEach(f -> {
+            String code = f.getCategoryCode();
+            categoryStats.put(code, categoryStats.getOrDefault(code, 0) + 1);
+        });
+
+        // 4. 周边小区平均房价（有房价的小区）
+        double avgPrice = communities.stream()
+                .map(c -> c.getPrice() == null ? 0.0 : c.getPrice().doubleValue())
+                .filter(v -> v > 0)
+                .mapToDouble(v -> v)
+                .average().orElse(0.0);
+        avgPrice = Math.round(avgPrice);
+
+        // 5. 综合评分（规则版：设施分类覆盖率 60% + 用户评价均分 40%）
+        //    覆盖率 = 可达分类数 / 总分类数（真实统计，评价缺失时仍可评估配套完整度）
+        double coverage = categoryStats.size() * 100.0 / Math.max(1, 7.0);
+        double avgScore = facilities.stream()
+                .map(f -> f.getAvgScore() == null ? 0.0 : f.getAvgScore().doubleValue())
+                .filter(v -> v > 0)
+                .mapToDouble(v -> v)
+                .average().orElse(0.0);
+        double score100 = Math.round((coverage * 0.6 + avgScore / 5.0 * 100.0 * 0.4) * 10.0) / 10.0;
+        score100 = Math.min(100.0, Math.max(0.0, score100));
+
+        // 6. AI 建议（配置了大模型则真实转发，否则规则版）
+        String advice;
+        boolean aiEnabled = aiUrl != null && !aiUrl.trim().isEmpty();
+        if (aiEnabled) {
+            String prompt = "你是社区生活圈规划助手。当前分析：起点(" + lng + "," + lat + ")半径" + radius
+                    + "米内，可达设施" + facilities.size() + "个，周边小区" + communities.size()
+                    + "个，小区平均房价" + avgPrice + "元/㎡，设施综合评分" + score100 + "分。"
+                    + "请用60字以内给出该生活圈便利性评价与改善建议。";
+            try {
+                String reqBody = "{\"model\":\"" + (aiModel == null ? "" : aiModel)
+                        + "\",\"messages\":[{\"role\":\"user\",\"content\":\"" + escapeJson(prompt) + "\"}]}";
+                HttpRequest request = HttpRequest.newBuilder(URI.create(aiUrl.trim()))
+                        .timeout(Duration.ofSeconds(30))
+                        .header("Content-Type", "application/json;charset=UTF-8")
+                        .header("Authorization", "Bearer " + (apiKey == null ? "" : apiKey))
+                        .POST(HttpRequest.BodyPublishers.ofString(reqBody, StandardCharsets.UTF_8))
+                        .build();
+                HttpResponse<String> resp = HTTP.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                String raw = resp.body();
+                int idx = raw.indexOf("\"content\":\"");
+                if (idx >= 0) {
+                    String seg = raw.substring(idx + 11);
+                    int end = seg.indexOf("\"");
+                    advice = end > 0 ? seg.substring(0, end) : "AI 返回格式异常，请稍后重试。";
+                } else {
+                    advice = "AI 服务已响应但解析失败，可稍后重试。";
+                }
+            } catch (Exception e) {
+                advice = "AI 服务调用失败（" + e.getMessage() + "），已切换为规则版建议。";
+                aiEnabled = false;
+            }
+        } else {
+            advice = coverage >= 85 ? "该区域生活圈配套完善，7类便民设施全覆盖，15分钟可达性高，宜居便利。"
+                    : coverage >= 60 ? "该区域生活圈配套较均衡，已覆盖主要便民设施类别，可关注个别短板类别的补齐。"
+                    : "该区域生活圈配套一般，覆盖类别较少，建议优先补齐医疗、商超等核心设施，提升可达性。";
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("facilityCount", facilities.size());
+        data.put("communityCount", communities.size());
+        data.put("avgPrice", avgPrice);
+        data.put("score100", score100);
+        data.put("categoryStats", categoryStats);
+        data.put("advice", advice);
+        data.put("aiEnabled", aiEnabled);
         return Result.success(data);
     }
 

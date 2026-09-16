@@ -102,4 +102,30 @@ async function loadTop() {
     });
 }
  
+// 导出统计报表（Excel，带token下载）
+function exportReport() {
+    const token = TokenStore.getToken();
+    const rows = [
+        { name: '小区数据表', url: '/api/export/communities', file: '张店区居住小区数据.xlsx' },
+        { name: '设施数据表', url: '/api/export/facilities', file: '张店区便民设施数据.xlsx' }
+    ];
+    let done = 0;
+    rows.forEach(r => {
+        fetch(API_BASE + r.url, { headers: { Authorization: 'Bearer ' + token } })
+            .then(resp => {
+                if (!resp.ok) throw new Error('导出失败');
+                return resp.blob();
+            })
+            .then(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = r.file;
+                a.click();
+                done++;
+                if (done === rows.length) toast('统计报表导出完成');
+            })
+            .catch(e => toast(r.name + '导出失败'));
+    });
+}
+
 function logout() { TokenStore.clear(); location.href = 'login.html'; }

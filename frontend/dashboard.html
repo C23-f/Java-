@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>统计大屏 · 张店区15分钟生活圈</title>
 <link rel="stylesheet" href="css/common.css">
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script src="js/echarts.min.js"></script>
 <style>
     body {
         overflow: auto;
@@ -65,6 +65,10 @@
     <div class="screen-title">
         <h1>张店区15分钟生活圈便民设施统计大屏</h1>
         <p>数据来源：后端 /api/stats/* 实时聚合 · 淄博市张店区</p>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:14px">
+            <button class="btn btn-sm" style="border:none" onclick="exportReport()">📊 导出Excel统计报表</button>
+            <button class="btn btn-sm" style="border:none;background:rgba(46,196,182,.25);color:#7ee8fa" onclick="location.reload()">🔄 刷新数据</button>
+        </div>
     </div>
  
     <div class="kpi-row">

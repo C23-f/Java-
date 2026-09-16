@@ -6,54 +6,69 @@
 <title>登录 · 15分钟生活圈便民设施评价与管理系统</title>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    /* 登录背景直接使用项目自带的登录页面插图.png，全屏铺满 */
+    /* 登录背景直接使用项目自带的 pic.png，全屏铺满 */
     body {
         width:100vw; height:100vh;
-        background: url("登录页面插图.png") center/cover no-repeat;
+        background: url("pic.png") center/cover no-repeat;
         font-family: "Microsoft YaHei", sans-serif;
         overflow: hidden;
     }
     /* 顶部系统标题 */
     .sys-title {
-        position:absolute; top:9%; left:50%; transform:translateX(-50%);
+        position:absolute; top:8%; left:50%; transform:translateX(-50%);
         text-align:center; color:#1f2d3d; z-index:9;
         animation: fade 1s ease;
+        text-shadow:0 2px 18px rgba(255,255,255,.85);
     }
-    .sys-title h1 { font-size:30px; letter-spacing:2px; }
-    .sys-title p { font-size:14px; color:#46566a; margin-top:8px; }
+    .sys-title h1 {
+        font-size:48px; letter-spacing:6px; font-weight:800;
+        background:linear-gradient(90deg,#0e6f9f,#1676d6,#2ec4b6);
+        -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .sys-title p { font-size:16px; color:#33475b; margin-top:12px; letter-spacing:1px; }
     @keyframes fade { from{opacity:0; transform:translateX(-50%) translateY(16px);} to{opacity:1;} }
- 
-    /* 登录卡片：玻璃拟态 */
+
+    /* 登录/注册卡片：玻璃拟态 */
     .login-card {
-        position:absolute; top:50%; right:14%; transform:translateY(-50%);
-        width:360px; padding:38px 34px;
-        background: rgba(255,255,255,0.72);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
+        position:absolute; top:50%; right:9%; transform:translateY(-50%);
+        width:412px; padding:34px 38px;
+        background: rgba(255,255,255,0.78);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         border:1px solid rgba(255,255,255,0.65);
         border-radius:20px;
         box-shadow:0 12px 40px rgba(20,50,80,.18);
         animation: cardIn 1s ease;
     }
     @keyframes cardIn { from{opacity:0; transform:translateY(-42%);} to{opacity:1; transform:translateY(-50%);} }
-    .login-card h2 { text-align:center; color:#1f2d3d; margin-bottom:26px; font-weight:600; }
+    .login-card h2 { text-align:center; color:#1f2d3d; margin-bottom:20px; font-weight:700; font-size:22px; }
+
+    /* Tab 切换：登录 / 注册 */
+    .switch-tabs { display:flex; background:rgba(46,196,182,.1); border-radius:12px; padding:4px; margin-bottom:22px; }
+    .switch-tabs .st {
+        flex:1; text-align:center; padding:9px 0; border-radius:9px; cursor:pointer;
+        font-size:14px; color:#46566a; transition:.2s; font-weight:600;
+    }
+    .switch-tabs .st.on { background:linear-gradient(90deg,#1676d6,#2ec4b6); color:#fff; box-shadow:0 3px 10px rgba(22,118,214,.3); }
+
     .item { margin-bottom:16px; }
-    .item label { display:block; font-size:13px; color:#46566a; margin-bottom:6px; }
+    .item label { display:block; font-size:13px; color:#46566a; margin-bottom:7px; }
     .item input {
-        width:100%; padding:12px 14px; border:1px solid rgba(120,160,190,.4);
-        border-radius:12px; font-size:14px; background:rgba(255,255,255,.75); outline:none;
+        width:100%; padding:13px 15px; border:1px solid rgba(120,160,190,.4);
+        border-radius:12px; font-size:15px; background:rgba(255,255,255,.75); outline:none;
     }
     .item input:focus { border-color:#2ec4b6; box-shadow:0 0 0 3px rgba(46,196,182,.18); }
     .row { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:#46566a; margin:6px 0 16px; }
     .row a { color:#1676d6; cursor:pointer; }
     .login-btn {
-        width:100%; padding:13px; border:none; border-radius:12px; cursor:pointer;
-        background:linear-gradient(90deg,#1676d6,#2ec4b6); color:#fff; font-size:16px;
-        transition:.25s;
+        width:100%; padding:15px; border:none; border-radius:12px; cursor:pointer;
+        background:linear-gradient(90deg,#1676d6,#2ec4b6); color:#fff; font-size:17px;
+        letter-spacing:8px; font-weight:600; transition:.25s;
     }
     .login-btn:hover { box-shadow:0 8px 20px rgba(22,118,214,.4); transform:translateY(-1px); }
     .tip { text-align:center; margin-top:16px; font-size:13px; color:#46566a; }
     .tip a { color:#1676d6; text-decoration:none; }
+    .hidden { display:none; }
 </style>
 </head>
 <body>
@@ -61,40 +76,79 @@
         <h1>张店区15分钟生活圈</h1>
         <p>便民设施评价与管理系统 · WebGIS 空间分析平台</p>
     </div>
- 
+
     <div class="login-card">
         <h2>用户登录</h2>
-        <div class="item">
-            <label>用户名</label>
-            <input id="username" placeholder="请输入用户名">
+        <!-- Tab 切换 -->
+        <div class="switch-tabs">
+            <div class="st on" id="tabLogin" onclick="switchTab('login')">登 录</div>
+            <div class="st" id="tabRegister" onclick="switchTab('register')">注 册</div>
         </div>
-        <div class="item">
-            <label>密码</label>
-            <input id="password" type="password" placeholder="请输入密码">
+
+        <!-- 登录表单 -->
+        <div id="formLogin">
+            <div class="item">
+                <label>用户名</label>
+                <input id="username" placeholder="请输入用户名">
+            </div>
+            <div class="item">
+                <label>密码</label>
+                <input id="password" type="password" placeholder="请输入密码">
+            </div>
+            <div class="row">
+                <label><input type="checkbox" id="remember"> 记住账号</label>
+                <a onclick="toast('请联系管理员重置密码')">忘记密码？</a>
+            </div>
+            <button class="login-btn" onclick="doLogin()">登 录</button>
+            <div class="tip">还没有账号？<a onclick="switchTab('register')">立即注册</a></div>
         </div>
-        <div class="row">
-            <label><input type="checkbox" id="remember"> 记住账号</label>
-            <a onclick="toast('请联系管理员重置密码')">忘记密码？</a>
+
+        <!-- 注册表单 -->
+        <div id="formRegister" class="hidden">
+            <div class="item">
+                <label>用户名</label>
+                <input id="regUsername" placeholder="请输入用户名（登录时使用）">
+            </div>
+            <div class="item">
+                <label>密码</label>
+                <input id="regPwd" type="password" placeholder="请输入密码">
+            </div>
+            <div class="item">
+                <label>确认密码</label>
+                <input id="regRepwd" type="password" placeholder="请再次输入密码">
+            </div>
+            <button class="login-btn" onclick="doRegister()">注 册</button>
+            <div class="tip">已有账号？<a onclick="switchTab('login')">返回登录</a></div>
         </div>
-        <button class="login-btn" onclick="doLogin()">登 录</button>
-        <div class="tip">还没有账号？<a href="register.html">立即注册</a></div>
     </div>
- 
+
 <script src="js/config.js"></script>
 <script>
+// ---------- Tab 切换：登录 / 注册 合一 ----------
+function switchTab(t) {
+    const isLogin = t === 'login';
+    document.getElementById('tabLogin').className = isLogin ? 'st on' : 'st';
+    document.getElementById('tabRegister').className = isLogin ? 'st' : 'st on';
+    document.getElementById('formLogin').classList.toggle('hidden', !isLogin);
+    document.getElementById('formRegister').classList.toggle('hidden', isLogin);
+    document.getElementById('login-card-title') && (document.getElementById('login-card-title').textContent = isLogin ? '用户登录' : '用户注册');
+}
+
 // 记住账号：回填上次用户名
 window.onload = function () {
     const saved = localStorage.getItem('remember_user');
     if (saved) { document.getElementById('username').value = saved; document.getElementById('remember').checked = true; }
+    // 支持从 register.html 跳转过来直接切到注册页
+    if (location.hash === '#register') switchTab('register');
 };
- 
+
 // 登录：调用后端 POST /api/user/login
 async function doLogin() {
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     if (!username) { toast('请输入用户名'); return; }
     if (!password) { toast('请输入密码'); return; }
- 
+
     try {
         // 后端返回 { token, user }
         const data = await api('/api/user/login', { method:'POST', body:{ username, password } });
@@ -103,13 +157,41 @@ async function doLogin() {
         // 记住账号
         if (document.getElementById('remember').checked) localStorage.setItem('remember_user', username);
         else localStorage.removeItem('remember_user');
- 
+
         toast('登录成功，欢迎 ' + data.user.username);
         setTimeout(() => { location.href = 'main.html'; }, 500);
     } catch (e) { /* api 已 toast 错误 */ }
 }
-// 回车登录
-document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// 注册：调用后端 POST /api/user/register，成功后切回登录页
+async function doRegister() {
+    const username = document.getElementById('regUsername').value.trim();
+    const pwd = document.getElementById('regPwd').value.trim();
+    const repwd = document.getElementById('regRepwd').value.trim();
+
+    if (!username) { toast('请输入用户名'); return; }
+    if (!pwd) { toast('请输入密码'); return; }
+    if (!repwd) { toast('请输入确认密码'); return; }
+    if (pwd !== repwd) { toast('两次输入的密码不一致'); return; }
+    if (pwd.length < 6) { toast('密码长度至少6位'); return; }
+
+    try {
+        await api('/api/user/register', {
+            method: 'POST',
+            body: { username, password: pwd }
+        });
+        toast('注册成功，请登录');
+        // 自动回填用户名并切回登录
+        document.getElementById('username').value = username;
+        switchTab('login');
+    } catch (e) { /* api 已 toast 错误 */ }
+}
+// 回车：根据当前 tab 触发对应提交
+document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    if (!document.getElementById('formRegister').classList.contains('hidden')) doRegister();
+    else doLogin();
+});
 </script>
 </body>
 </html>

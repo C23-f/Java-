@@ -28,9 +28,9 @@
     .slider-row input[type=range] { flex:1; }
     .num { font-variant-numeric:tabular-nums; color:#0e6f9f; font-weight:600; }
  
-    /* 右侧结果面板 */
+    /* 右侧结果面板（下移避开右上角工具组） */
     .right-panel {
-        position: fixed; top:72px; right:14px; width:330px; max-height: calc(100vh - 90px);
+        position: fixed; top:132px; right:14px; width:330px; max-height: calc(100vh - 150px);
         overflow-y:auto; padding:18px; z-index:900;
     }
     .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
@@ -76,6 +76,27 @@
     .star { color:#faad14; }
     .fav-star { cursor:pointer; font-size:18px; }
     .empty { text-align:center; color:#99a; font-size:13px; padding:20px 0; }
+
+    /* AI 综合评估卡片 */
+    .ai-card {
+        background: linear-gradient(135deg, rgba(46,196,182,.1), rgba(22,118,214,.1));
+        border:1px solid rgba(46,196,182,.35); border-radius:12px; padding:12px;
+        font-size:13px; color:#1f2d3d; margin-bottom:12px;
+    }
+    .ai-card .ai-t { font-weight:700; color:#0e6f9f; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+    .ai-card .ai-adv { line-height:1.7; color:#33475b; }
+    .ai-card .ai-meta { margin-top:8px; padding-top:8px; border-top:1px dashed rgba(46,196,182,.4); font-size:12px; color:#6b7a8d; display:flex; gap:14px; flex-wrap:wrap; }
+    .ai-card .ai-meta b { color:#0e6f9f; }
+    .ai-tag { display:inline-block; padding:1px 8px; border-radius:8px; font-size:11px; background:rgba(22,118,214,.12); color:#1676d6; }
+
+    /* 高亮脉冲圈（清单定位） */
+    .loc-pulse {
+        position:relative; width:26px; height:26px; border-radius:50%;
+        background:linear-gradient(135deg,#f59e0b,#ef4444); border:2px solid #fff;
+        box-shadow:0 0 0 8px rgba(245,158,11,.35);
+        animation: locPulse 1.6s ease-out infinite;
+    }
+    @keyframes locPulse { 0%{box-shadow:0 0 0 8px rgba(245,158,11,.45);} 100%{box-shadow:0 0 0 22px rgba(245,158,11,0);} }
 </style>
 </head>
 <body>
@@ -86,6 +107,7 @@
         <a href="main.html" class="active">地图主页</a>
         <a href="dashboard.html">图表可视化</a>
         <a href="javascript:openFav()">我的收藏</a>
+        <a href="javascript:openPlans()">我的方案</a>
         <a href="javascript:savePlan()">保存方案</a>
         <a href="admin.html" id="adminMenu" style="display:none">数据管理</a>
     </div>
@@ -105,8 +127,8 @@
  
 <!-- 右上角：图层模式 / 底图切换 -->
 <div class="map-tools">
-    <button id="modeScatter" class="on" onclick="setRenderMode('scatter')">散点模式</button>
-    <button id="modeHeat" onclick="setRenderMode('heat')">热力模式</button>
+    <button id="modeScatter" onclick="setRenderMode('scatter')">散点模式</button>
+    <button id="modeCluster" class="on" onclick="setClusterMode()">聚合标注</button>
     <button id="baseVector" class="on" onclick="switchBase('vector')">标准图</button>
     <button id="baseSat" onclick="switchBase('sat')">卫星图</button>
 </div>
@@ -164,6 +186,14 @@
         <div class="kpi"><div class="v" id="kpiScore">--</div><div class="l">综合评分</div></div>
         <div class="kpi"><div class="v" id="kpiAvg">--</div><div class="l">平均房价</div></div>
     </div>
+    <div class="ai-card" id="aiAdviceBox">
+        <div class="ai-t">🤖 AI 综合评估</div>
+        <div class="ai-adv" id="aiAdvice">完成一次可达性分析后，将在这里生成 AI 生活圈评估与建议。</div>
+        <div class="ai-meta" id="aiMeta" style="display:none"></div>
+    </div>
+    <div class="sec-t" style="margin-top:10px">📊 本次分析图表（随分析参数实时更新）</div>
+    <div id="analysisChart" style="width:100%;height:190px;margin-bottom:6px"></div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:10px" onclick="exportChart()">📷 导出图表图片</button>
     <div class="sec-t">可达设施清单（点击定位）</div>
     <ul class="result-list" id="facList"><li class="empty">尚未分析</li></ul>
     <div class="sec-t" style="margin-top:10px">周边小区推荐（按综合分）</div>
@@ -176,6 +206,7 @@
     <button title="复位视图" onclick="resetView()">⌂</button>
     <button title="框选查询" onclick="toggleBox()">▢</button>
     <button title="测距" onclick="measure()">📏</button>
+    <button title="面积量算" onclick="areaMeasure()">⬠</button>
     <button title="清除绘制" onclick="clearAll()">✕</button>
 </div>
  
@@ -191,7 +222,8 @@
  
 <!-- 高德地图 JS API 2.0：把下面两个占位换成你申请的 Key 与安全密钥 -->
 <script>window._AMapSecurityConfig = { securityJsCode:'d5bf0f930e7b55dadcd35863d958c5f3' };</script>
-<script src="https://webapi.amap.com/maps?v=2.0&key=698dfb27413eb152a809a7a13009488f&plugin=AMap.MarkerCluster,AMap.HeatMap,AMap.MouseTool,AMap.ToolBar,AMap.Scale"></script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=698dfb27413eb152a809a7a13009488f"></script>
+<script src="js/echarts.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/main.js"></script>
 </body>

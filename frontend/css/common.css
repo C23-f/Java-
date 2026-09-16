@@ -47,10 +47,11 @@ a { text-decoration: none; color: inherit; }
     z-index: 1000; gap: 14px;
 }
 .topbar .brand {
-    font-size: 17px; font-weight: 700;
+    font-size: 24px; font-weight: 800; letter-spacing: 1px;
     background: linear-gradient(90deg,#1676d6,#2ec4b6);
     -webkit-background-clip: text; background-clip: text; color: transparent;
     white-space: nowrap;
+    text-shadow: 0 1px 0 rgba(255,255,255,.6);
 }
 .topbar .menu { display: flex; gap: 4px; margin-left: 8px; }
 .topbar .menu a {
