@@ -13,7 +13,6 @@ window.onload = async function () {
  
     await loadOverview();
     await loadCategory();
-    await loadScoreDist();
     await loadPriceDist();
     await loadTop();
 };
@@ -61,19 +60,6 @@ async function loadCategory() {
     });
 }
  
-// 3. 评分等级分布
-async function loadScoreDist() {
-    const data = await api('/api/stats/scoreDistribution');
-    echarts.init(document.getElementById('c3')).setOption({
-        tooltip: { trigger: 'axis' },
-        grid: { left: 40, right: 20, top: 20, bottom: 30 },
-        xAxis: { type: 'category', data: data.map(d => d.name), ...AXIS },
-        yAxis: { type: 'value', ...AXIS },
-        series: [{ type: 'bar', data: data.map(d => Number(d.count)),
-            itemStyle: { color: '#f59e0b', borderRadius: [6,6,0,0] } }]
-    });
-}
- 
 // 4. 房价分布
 async function loadPriceDist() {
     const data = await api('/api/stats/priceDistribution');
@@ -87,18 +73,19 @@ async function loadPriceDist() {
     });
 }
  
-// 5. Top8 设施排行
+// 3. 可达性评分 Top8 便民设施（竖排柱状图，补位原"评分等级分布"位置）
 async function loadTop() {
     const data = await api('/api/stats/topFacilities', { query: { limit: 8 } });
-    echarts.init(document.getElementById('c5')).setOption({
+    echarts.init(document.getElementById('c3')).setOption({
         tooltip: { trigger: 'axis' },
-        grid: { left: 130, right: 40, top: 10, bottom: 20 },
-        xAxis: { type: 'value', ...AXIS },
-        yAxis: { type: 'category', inverse: true, data: data.map(d => d.name),
-                 axisLabel: { color: '#cfe8ff' } },
-        series: [{ type: 'bar', data: data.map(d => Number(d.score)),
-            itemStyle: { color: '#22c55e', borderRadius: [0,6,6,0] },
-            label: { show: true, position: 'right', color: '#cfe8ff' } }]
+        grid: { left: 44, right: 20, top: 24, bottom: 56 },
+        xAxis: { type: 'category', data: data.map(d => d.name),
+                 axisLabel: { color: '#cfe8ff', fontSize: 11, rotate: 30, interval: 0 },
+                 axisLine: { lineStyle: { color: 'rgba(156,195,230,.4)' } } },
+        yAxis: { type: 'value', ...AXIS },
+        series: [{ type: 'bar', barWidth: '52%', data: data.map(d => Number(d.score)),
+            itemStyle: { color: '#22c55e', borderRadius: [6,6,0,0] },
+            label: { show: true, position: 'top', color: '#cfe8ff', fontSize: 11 } }]
     });
 }
  

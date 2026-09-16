@@ -11,7 +11,7 @@
  *  4. 可达性分析：缓冲区 + 分类过滤 + 权重综合评分 + AI 综合评估
  *  5. 设施清单点击定位（平滑平移 + 高亮脉冲圈）
  *  6. 详情弹窗 + 一键导航（步行/驾车）
- *  7. 全局搜索 / 框选查询 / 测距 / 面积量算 / 复位
+ *  7. 全局搜索 / 收藏 / 方案保存
  *  8. 我的收藏 / 保存方案 / 加载方案 / 评价提交 / 导出 Excel
  *  9. 每次分析自动生成图表可视化（ECharts），可导出图片
  * ============================================================
@@ -22,7 +22,7 @@ let map;                 // 高德地图实例
 let communityMarkers = []; // 小区 marker
 let facilityMarkers = [];  // 设施 marker（全部）
 let facilityMarkersByCat = {}; // 按分类分组的设施 marker
-let clusterGroups = [];   // 按分类的聚合组
+let aggMarkers = [];     // 自研网格聚合圈 marker
 let overlayGroup = [];    // 缓冲区/框选/高亮等叠加物
 let startPoint = null;    // 当前分析起点 {lng,lat,communityId}
 let categories = [];     // 设施分类
@@ -33,14 +33,16 @@ let analysisChart = null; // 本次分析图表实例
 let locHighlight = null;  // 清单定位高亮脉冲圈
 
 // 设施分类 → 颜色与图标
+// 公认分类配色：医疗红 / 教育蓝 / 商超橙 / 文体绿 / 生活紫 / 养老粉 / 交通青
+// mark = 地图图标上的白色符号（纯色底 + 白字，清晰可辨）
 const CAT_STYLE = {
-    EDU:  { color:'#3b82f6', icon:'📖', name:'教育' },
-    MED:  { color:'#ef4444', icon:'✚', name:'医疗' },
-    MKT:  { color:'#f97316', icon:'🛒', name:'商超' },
-    CUL:  { color:'#22c55e', icon:'🌳', name:'公园' },
-    LIFE: { color:'#a855f7', icon:'🔧', name:'生活' },
-    AGE:  { color:'#ec4899', icon:'👵', name:'养老' },
-    TRA:  { color:'#06b6d4', icon:'🚌', name:'交通' }
+    EDU:  { color:'#2563eb', mark:'教', icon:'📖', name:'教育' },
+    MED:  { color:'#dc2626', mark:'医', icon:'✚', name:'医疗' },
+    MKT:  { color:'#f97316', mark:'购', icon:'🛒', name:'商超' },
+    CUL:  { color:'#16a34a', mark:'文', icon:'🌳', name:'公园' },
+    LIFE: { color:'#7c3aed', mark:'活', icon:'🔧', name:'生活' },
+    AGE:  { color:'#db2777', mark:'养', icon:'👵', name:'养老' },
+    TRA:  { color:'#0891b2', mark:'交', icon:'🚌', name:'交通' }
 };
 function catStyle(code){ return CAT_STYLE[code] || { color:'#94a3b8', icon:'📍', name:code||'设施' }; }
 
@@ -54,7 +56,7 @@ window.onload = async function () {
     if (TokenStore.isAdmin()) document.getElementById('adminMenu').style.display = '';
 
     // 高德 JS API 2.0 必须在运行时动态加载插件（URL 上的 plugin= 参数无效）
-    AMap.plugin(['AMap.MarkerCluster','AMap.MouseTool','AMap.ToolBar','AMap.Scale','AMap.Walking','AMap.Driving'], async function () {
+    AMap.plugin(['AMap.MouseTool','AMap.ToolBar','AMap.Scale','AMap.Walking','AMap.Driving'], async function () {
         try {
             initMap();
             bindPanelEvents();
@@ -85,6 +87,10 @@ function initMap() {
             setStartPoint(e.lnglat.getLng(), e.lnglat.getLat(), null);
         }
     });
+
+    // 缩放/平移后重新聚合（随比例尺联动）
+    map.on('zoomend', () => { if (map) renderMarkers(); });
+    map.on('moveend', () => { if (map) renderMarkers(); });
 }
 
 // 底图切换
@@ -136,14 +142,17 @@ async function loadCommunities() {
         const list = await api('/api/community/list');
         communityMarkers = list.map(c => {
             const price = c.price ? Number(c.price) : 0;
-            const color = price >= 12000 ? '#ef4444' : price >= 8000 ? '#f59e0b' : '#22c55e';
+            // 小区图标统一颜色（主题青色渐变，不再按价格分色）
+            const color = '#0e6f9f';
             const m = new AMap.Marker({
                 position: [Number(c.longitude), Number(c.latitude)],
                 content: `<div style="
-                    width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
-                    background:${color};border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);
-                    display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;">🏠</div>`,
-                offset: new AMap.Pixel(-13, -13)
+                    width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+                    background:#1676d6;border:2px solid #fff;
+                    box-shadow:0 3px 9px rgba(0,0,0,.35);
+                    display:flex;align-items:center;justify-content:center;">
+                    <span style="transform:rotate(45deg);font-size:14px;">🏠</span></div>`,
+                offset: new AMap.Pixel(-16, -16)
             });
             m.on('click', () => {
                 if (startMode === 'community') {
@@ -180,10 +189,12 @@ async function loadFacilities() {
         const m = new AMap.Marker({
             position: [Number(f.longitude), Number(f.latitude)],
             content: `<div style="
-                width:24px;height:24px;border-radius:50%;background:${st.color};
-                border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);
-                display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;">${st.icon}</div>`,
-            offset: new AMap.Pixel(-12, -12)
+                width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+                background:${st.color};border:2px solid #fff;
+                box-shadow:0 3px 8px rgba(0,0,0,.32);
+                display:flex;align-items:center;justify-content:center;">
+                <span style="transform:rotate(45deg);font-size:13px;">${st.icon}</span></div>`,
+            offset: new AMap.Pixel(-15, -15)
         });
         m.on('click', () => openFacilityDetail(f));
         m._data = f;
@@ -217,66 +228,75 @@ function visibleFacilityGroups() {
     return groups;
 }
 
-// 聚合圈内容（按分类配色，随视角放大自动拆散成单个点）
-function makeClusterRenderer(st) {
-    return (ctx) => {
-        try {
-            const n = ctx.markers.length;
-            const size = 28 + Math.min(n, 40);
-            ctx.marker.setContent(`<div style="width:${size}px;height:${size}px;line-height:${size}px;
-                text-align:center;border-radius:50%;background:linear-gradient(135deg,${st.color},#0e6f9f);
-                color:#fff;font-size:12px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)">
-                ${n}<div style="font-size:8px;line-height:1;margin-top:-2px">${st.icon}</div></div>`);
-            ctx.marker.setOffset(new AMap.Pixel(-size/2, -size/2));
-        } catch (e) {}
-    };
+// 自研网格聚合渲染：
+//   按当前缩放级别将设施点按屏幕网格聚合——缩小视图(zoom小)聚合圈大而少，
+//   放大视图(zoom大)网格变小、逐个拆散显示，随比例尺自动联动。
+//   不依赖官方 MarkerCluster 插件，保证聚合标注必定生效。
+function renderFacilityLayer() {
+    // 清旧：设施散点 + 聚合圈
+    facilityMarkers.forEach(m => m.setMap(null));
+    aggMarkers.forEach(g => { try { g.setMap(null); } catch(e){} });
+    aggMarkers = [];
+
+    const markers = visibleFacilityMarkers();
+    if (!markers.length || !map) return;
+
+    const zoom = map.getZoom();
+    // 网格像素大小随缩放变化：zoom 越小网格越大(聚合粗)，zoom 越大网格越小(拆散细)
+    const gridPx = Math.max(55, 310 - zoom * 16); // 聚合更粗：z10:150 z13:102 z15:70 z17:38→55
+
+    // 按容器像素坐标分桶（视野外粗略剔除）
+    const buckets = {};
+    markers.forEach(m => {
+        let px;
+        try { px = map.lngLatToContainer(m.getPosition()); } catch(e) { return; }
+        if (px.x < -gridPx || px.y < -gridPx || px.x > 3000 + gridPx || px.y > 2000 + gridPx) return;
+        const gx = Math.floor(px.x / gridPx);
+        const gy = Math.floor(px.y / gridPx);
+        const key = gx + '_' + gy;
+        (buckets[key] = buckets[key] || []).push(m);
+    });
+
+    Object.keys(buckets).forEach(key => {
+        const ms = buckets[key];
+        // 单点：直接显示原散点
+        if (ms.length === 1) { ms[0].setMap(map); return; }
+        // 多点：合并为一个聚合圈（显示数量 + 分类图标）
+        const lng = ms.reduce((s, m) => s + m.getPosition().getLng(), 0) / ms.length;
+        const lat = ms.reduce((s, m) => s + m.getPosition().getLat(), 0) / ms.length;
+        const st = catStyle(ms[0]._data.categoryCode);
+        // 聚合圈：统一大小、不显示数字、不触发放大
+        const size = 36;
+        const agg = new AMap.Marker({
+            position: [lng, lat],
+            content: `<div style="width:${size}px;height:${size}px;border-radius:50%;
+                background:${st.color};color:#fff;
+                font-size:16px;border:2px solid #fff;
+                box-shadow:0 2px 8px rgba(0,0,0,.32);
+                display:flex;align-items:center;justify-content:center;">
+                ${st.icon}</div>`,
+            offset: new AMap.Pixel(-size/2, -size/2),
+            zIndex: 200
+        });
+        agg.setMap(map);
+        aggMarkers.push(agg);
+    });
 }
 
-// 根据当前渲染模式渲染 marker（散点 / 按分类聚合）
+// 渲染所有点位：小区散点 + 设施聚合（打开页面即默认聚合显示全部）
 function renderMarkers() {
     // 先清旧
     communityMarkers.forEach(m => m.setMap(null));
     facilityMarkers.forEach(m => m.setMap(null));
-    clusterGroups.forEach(g => { try { g.setMap(null); } catch(e){} });
-    clusterGroups = [];
+    aggMarkers.forEach(g => { try { g.setMap(null); } catch(e){} });
+    aggMarkers = [];
     if (locHighlight) { locHighlight.setMap(null); locHighlight = null; }
 
     // 小区始终散点显示
     communityMarkers.forEach(m => m.setMap(map));
 
-    if (clusterMode) {
-        // 按分类聚合标注：每个分类独立聚合，缩小聚合、放大拆散
-        try {
-            const groups = visibleFacilityGroups();
-            Object.keys(groups).forEach(code => {
-                const st = catStyle(code);
-                const g = new AMap.MarkerCluster(map, groups[code], {
-                    gridSize: 60,
-                    renderClusterMarker: makeClusterRenderer(st)
-                });
-                clusterGroups.push(g);
-            });
-        } catch (e) {
-            // 聚合失败时兜底散点显示，保证点位不丢
-            visibleFacilityMarkers().forEach(m => m.setMap(map));
-        }
-    } else {
-        // 纯散点
-        visibleFacilityMarkers().forEach(m => m.setMap(map));
-    }
-}
-
-function setRenderMode(mode) {
-    clusterMode = (mode === 'cluster');
-    document.getElementById('modeScatter').className = clusterMode ? '' : 'on';
-    document.getElementById('modeCluster').className = clusterMode ? 'on' : '';
-    renderMarkers();
-}
-
-// 聚合标注开关
-function setClusterMode() {
-    setRenderMode(clusterMode ? 'scatter' : 'cluster');
-    toast(clusterMode ? '已开启聚合标注：缩小聚合、放大拆散' : '已关闭聚合标注：全部散点显示');
+    // 设施：自研网格聚合（随缩放自动合并/拆散）
+    renderFacilityLayer();
 }
 
 // ---------- 5. 分析起点 ----------
@@ -670,83 +690,9 @@ async function doSearch() {
     } catch (e) {}
 }
 
-// ---------- 11. 框选查询 ----------
-let boxMode = false;
-let boxTool = null;
-function toggleBox() {
-    boxMode = !boxMode;
-    if (boxMode) {
-        toast('请在地图上拖拽出矩形框选范围');
-        boxTool = new AMap.MouseTool(map);
-        boxTool.rect({ strokeColor: '#2ec4b6', strokeWeight: 2, fillColor: '#2ec4b6', fillOpacity: 0.15 });
-        boxTool.on('draw', e => {
-            // 框选矩形加入可清除列表
-            overlayGroup.push(e.obj);
-            const b = e.obj.getBounds();
-            queryBounds(b);
-        });
-    } else if (boxTool) {
-        boxTool.close();
-        boxTool = null;
-    }
-}
+// ---------- 11. 工具 ----------
+// ---------- 11. 工具 ----------
 
-// 框选查询：查小区 + 设施并汇总展示
-async function queryBounds(bounds) {
-    const sw = bounds.getSouthWest(), ne = bounds.getNorthEast();
-    const q = { minLng: sw.getLng(), minLat: sw.getLat(), maxLng: ne.getLng(), maxLat: ne.getLat() };
-    try {
-        const [coms, facs] = await Promise.all([
-            api('/api/community/bounds', { query: q }),
-            api('/api/facility/bounds', { query: q })
-        ]);
-        setModal(`
-            <h3>▢ 框选查询结果</h3>
-            <div class="kpi-grid">
-                <div class="kpi"><div class="v">${coms.length}</div><div class="l">框选小区</div></div>
-                <div class="kpi"><div class="v">${facs.length}</div><div class="l">框选设施</div></div>
-            </div>
-            <div style="font-size:13px;font-weight:600;margin:8px 0">设施明细（点击定位）</div>
-            <ul class="result-list">
-                ${facs.slice(0, 50).map(f => `
-                    <li onclick="locate(${Number(f.longitude)},${Number(f.latitude)})">
-                        <b>${catStyle(f.categoryCode).icon} ${f.facilityName}</b>
-                        <span class="badge badge-ok">${f.categoryName||''}</span>
-                    </li>`).join('') || '<li class="empty">框选范围内无设施</li>'}
-            </ul>
-            <div style="font-size:13px;font-weight:600;margin:8px 0">小区明细</div>
-            <ul class="result-list">
-                ${coms.slice(0, 50).map(c => `
-                    <li onclick="locate(${Number(c.longitude)},${Number(c.latitude)})">
-                        <b>🏠 ${c.communityName}</b>
-                        <div class="sub">${c.price?Number(c.price).toLocaleString()+' 元/㎡':'--'}</div>
-                    </li>`).join('') || '<li class="empty">框选范围内无小区</li>'}
-            </ul>
-            <div class="empty" style="font-size:12px">超过 50 条仅展示前 50 条，完整数据可在数据管理页查看</div>
-        `);
-    } catch (e) {}
-}
-
-// ---------- 12. 工具 ----------
-function resetView() {
-    map.setZoomAndCenter(MAP_ZOOM, MAP_CENTER);
-}
-function measure() {
-    if (typeof AMap.MouseTool === 'undefined') { toast('测距组件加载失败'); return; }
-    const tool = new AMap.MouseTool(map);
-    tool.rule();
-    // 绘制完成的测距线加入可清除列表
-    tool.on('draw', e => { if (e.obj) overlayGroup.push(e.obj); });
-    toast('沿地图点击测量距离，双击结束（结果可被「清除绘制」删除）');
-}
-function areaMeasure() {
-    if (typeof AMap.MouseTool === 'undefined') { toast('面积量算组件加载失败'); return; }
-    const tool = new AMap.MouseTool(map);
-    tool.measureArea();
-    // 绘制完成的面加入可清除列表
-    tool.on('draw', e => { if (e.obj) overlayGroup.push(e.obj); });
-    toast('沿边界点击量算面积，双击结束（结果可被「清除绘制」删除）');
-}
 function clearOverlays() {
     overlayGroup.forEach(o => { try { o.setMap(null); } catch(e){} });
     overlayGroup = [];
@@ -756,8 +702,6 @@ function clearOverlays() {
         try { navTool.clear(); } catch(e) {}
         navTool = null;
     }
-    // 关闭框选工具
-    if (boxTool) { try { boxTool.close(); } catch(e) {} boxTool = null; boxMode = false; }
 }
 function clearAll() {
     clearOverlays();

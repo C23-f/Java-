@@ -12,10 +12,12 @@ window.onload = async function () {
     const u = TokenStore.getUser();
     document.getElementById('userName').textContent = u.username;
     document.getElementById('avatar').textContent = u.username.charAt(0).toUpperCase();
-    // 用户管理/操作日志仅 admin 可见
+    // 用户管理/操作日志仅管理员(admin)可见，运营/观察者隐藏
     if (!TokenStore.isSuperAdmin()) {
         document.getElementById('tabUser').style.display = 'none';
         document.getElementById('tabLog').style.display = 'none';
+        // 若当前停留在被隐藏的页签，强制切回小区管理
+        if (state.tab === 'user' || state.tab === 'log') { state.tab = 'community'; }
     }
     // 标签切换
     document.querySelectorAll('#tabs .tab').forEach(t => {
@@ -51,10 +53,6 @@ const TAB_CONFIG = {
     category: {
         cols: [['categoryId','ID'],['categoryCode','编码'],['categoryName','名称'],['weight','权重'],['sortOrder','排序']],
         list: async p => ({ list: await api('/api/category/list'), total: (await api('/api/category/list')).length })
-    },
-    district: {
-        cols: [['id','ID'],['name','街道名称']],
-        list: async p => { const l = await api('/api/district/list'); return { list: l, total: l.length }; }
     },
     favorite: {
         cols: [['id','ID'],['userId','用户'],['objectType','类型'],['objectId','对象ID'],['remark','备注'],['createTime','收藏时间']],

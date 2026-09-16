@@ -41,9 +41,10 @@ const TokenStore = {
         return u && (u.roleCode === 'admin' || u.roleCode === 'operator');
     },
     // 是否超级管理员（用户/角色/日志管理）
+    // 兼容新旧两种 user 缓存：roleCode==='admin' 或 roleId===1 均为管理员
     isSuperAdmin() {
         const u = this.getUser();
-        return u && u.roleCode === 'admin';
+        return u && (u.roleCode === 'admin' || u.roleId === 1);
     }
 };
  
